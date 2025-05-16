@@ -1,5 +1,4 @@
 import { api } from "@services/api";
-
 import { CreateProductInterface, UpdateProductInterface } from "@/types";
 
 export const createProduct = async (data: CreateProductInterface) => {
@@ -21,7 +20,9 @@ export const updateProduct = async (
   id: string,
   data: UpdateProductInterface
 ) => {
-  const response = await api.patch(`/v1/users/${id}`, data);
+  const { id: _id, ...dataWithoutId } = data;
+
+  const response = await api.patch(`/v1/product/${id}`, dataWithoutId);
   return response.data;
 };
 

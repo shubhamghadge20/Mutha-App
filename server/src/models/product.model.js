@@ -34,7 +34,7 @@ const productSchema = new mongoose.Schema(
     },
   },
   {
-    _id: true, // Ensures the main product has an _id
+    _id: true,
   }
 );
 

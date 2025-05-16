@@ -23,7 +23,7 @@ const updateProduct = {
       name: Joi.string().trim(),
       items: Joi.array(),
     })
-    .min(1), // Ensure at least one of them is provided
+    .min(1),
 };
 const deleteProduct = {
   params: Joi.object().keys({

@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { FaEdit, FaTrashAlt, FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
-import { Product, ProductItem, UpdateProductInterface } from "@/types";
+import { ProductItem, UpdateProductInterface } from "@/types";
 import {
   deleteProductThunk,
-  updateProductThunk,
   getProductsThunk,
+  updateProductThunk,
 } from "@/features/product";
 import AlertModal from "../@/ui/AlertModal";
 import CreateProductModal from "./CreateProductModal";
-// import UpdateProductModal from "./UpdateProductModal";
+import UpdateProductModal from "./UpdateProductModal";
 
 const ProductsMaster = () => {
   const dispatch = useAppDispatch();
@@ -22,7 +22,7 @@ const ProductsMaster = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formData, setFormData] = useState<
     UpdateProductInterface | undefined
-  >(); // Correct typing here
+  >();
 
   useEffect(() => {
     dispatch(getProductsThunk());
@@ -37,23 +37,19 @@ const ProductsMaster = () => {
     setSelectedId(id);
     setFormData({
       id: product?.id || "",
-      name: product?.name,
-      items: product?.items,
+      name: product?.name || "",
+      items: product?.items || [],
     });
     setShowUpdateProductModal(true);
   };
 
   const handleConfirmUpdateProduct = () => {
-    if (selectedId && formData) {
-      try {
-        dispatch(updateProductThunk({ id: selectedId, formData }));
-      } catch (error: any) {
-        console.error(error);
-        toast.error("Update operation failed");
-      }
+    if (formData) {
+      dispatch(updateProductThunk({ id: formData.id, formData }));
+      setShowUpdateProductModal(false);
+      setFormData(undefined);
+      setSelectedId(null);
     }
-    setShowUpdateProductModal(false);
-    setSelectedId(null);
   };
 
   const handleCancelUpdateProduct = () => {
@@ -97,13 +93,14 @@ const ProductsMaster = () => {
         open={showCreateProductModal}
         onClose={handleCancelCreateProduct}
       />
-      {/* <UpdateProductModal
+
+      <UpdateProductModal
         open={showUpdateProductModal}
         onClose={handleCancelUpdateProduct}
-        onConfirm={handleConfirmUpdateProduct}
         formData={formData}
-        setFormData={setFormData} // This is now correctly typed
-      /> */}
+        onConfirm={handleConfirmUpdateProduct}
+        setFormData={setFormData}
+      />
 
       <div className="w-full max-w-8xl mx-auto bg-white shadow-xl border border-gray-200 overflow-hidden m-8">
         <div className="flex justify-between px-8 py-6 border-b bg-green-100">

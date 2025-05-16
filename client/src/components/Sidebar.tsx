@@ -14,7 +14,8 @@ const Sidebar = ({
   const navItems = [
     { id: 1, item: "Dashboard", path: "/" },
     { id: 2, item: "Users", path: "/users" },
-    { id: 2, item: "Products", path: "/product" },
+    { id: 3, item: "Products", path: "/product" },
+    { id: 4, item: "xmlcompare", path: "/xmlcompare" },
   ];
 
   return (

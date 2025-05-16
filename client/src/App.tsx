@@ -13,6 +13,7 @@ import PageNotFound from "@components/PageNotFound";
 import Layout from "@components/Layout";
 import { useAuth } from "@/hooks/auth/useAuth";
 import Products from "./pages/Products";
+import XmlCompare from "./components/Xml/XmlMaster";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -73,6 +74,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Products />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/xmlcompare"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <XmlCompare />
               </Layout>
             </ProtectedRoute>
           }

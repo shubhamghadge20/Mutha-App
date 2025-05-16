@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
 import {
   createProduct,
   getProduct,
@@ -13,7 +12,6 @@ import {
   Product,
   UpdateProductInterface,
 } from "@types";
-
 import { toast } from "react-toastify";
 
 interface UpdateProductParams {
@@ -78,14 +76,14 @@ export const getProductsThunk = createAsyncThunk(
 );
 
 export const updateProductThunk = createAsyncThunk(
-  "products/updateProduct",
+  "users/updateProduct",
   async ({ id, formData }: UpdateProductParams, { rejectWithValue }) => {
     try {
       const data = await updateProduct(id, formData);
       return data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "Update product failed"
+        error.response?.data?.message || "Update user failed"
       );
     }
   }
@@ -105,11 +103,10 @@ export const deleteProductThunk = createAsyncThunk(
   }
 );
 
-const processSlice = createSlice({
+const productSlice = createSlice({
   name: "product",
   initialState,
   reducers: {},
-
   extraReducers: (builder) => {
     builder
       .addCase(createProductThunk.pending, (state) => {
@@ -119,12 +116,12 @@ const processSlice = createSlice({
       .addCase(createProductThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.products.push(action.payload);
-        toast.success("Product created sucessfully");
+        toast.success("Product created successfully");
       })
       .addCase(createProductThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        toast.error("Create product operation failed");
+        toast.error("Create product failed");
       })
 
       .addCase(getProductThunk.pending, (state) => {
@@ -160,12 +157,11 @@ const processSlice = createSlice({
       .addCase(updateProductThunk.fulfilled, (state, action) => {
         state.loading = false;
         const updated = action.payload;
-        state.products = state.products.map((p) =>
-          p.id === updated.id ? updated : p
+        state.products = state.products.map((u) =>
+          u.id === updated.id ? updated : u
         );
-        toast.success("Product updated sucessfully");
+        toast.success("Product updated successfully");
       })
-
       .addCase(updateProductThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -180,14 +176,14 @@ const processSlice = createSlice({
         state.loading = false;
         const deletedId = action.payload;
         state.products = state.products.filter((u) => u.id !== deletedId);
-        toast.success("Product deleted sucessfully");
+        toast.success("Product deleted successfully");
       })
       .addCase(deleteProductThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        toast.error("Delete operation failed");
+        toast.error("Delete product failed");
       });
   },
 });
 
-export default processSlice.reducer;
+export default productSlice.reducer;
