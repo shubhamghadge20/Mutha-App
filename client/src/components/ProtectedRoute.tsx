@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/hooks/reduxHooks";
 import { RootState } from "@/store";
 
 interface Props {
-  children: JSX.Element;
+  children: ReactNode;
 }
 
 const ProtectedRoute: React.FC<Props> = ({ children }) => {

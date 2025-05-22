@@ -6,6 +6,7 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const productRoute = require('./product.route');
 const xmlRoute = require('./xml.route');
+const xmlHistoryRoute = require('./xmlhistory.route');
 
 const router = express.Router();
 
@@ -25,6 +26,10 @@ const defaultRoutes = [
   {
     path: '/xml',
     route: xmlRoute,
+  },
+  {
+    path: '/history',
+    route: xmlHistoryRoute,
   },
 ];
 

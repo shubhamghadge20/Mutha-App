@@ -2,7 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "@/features/auth/authSlice";
 import userSlice from "@features/user/userSlice";
 import productSlice from "@features/product/productSlice";
-import xmlSlice from "@features/xml/xmlSlice";
+import xmlSlice from "@/features/xml/xmlSlice";
+import xmlhistorySlice from "@/features/xmlhistory/xmlhistorySlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     user: userSlice,
     product: productSlice,
     xml: xmlSlice,
+    xmlhistory: xmlhistorySlice,
   },
 });
 

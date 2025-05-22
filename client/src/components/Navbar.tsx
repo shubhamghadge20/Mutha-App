@@ -21,20 +21,18 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-green-700 shadow-md px-6 py-2">
+      <nav className="bg-blue-400 shadow-md px-6 py-3">
         <div className="flex items-center justify-between">
-          {/* Left: Menu + Name */}
-          <div className="flex items-center gap-6 cursor-pointer hover:bg-green-700">
+          <div className="flex items-center gap-6 cursor-pointer">
             <button
               onClick={toggleSidebar}
-              className="text-white hover:text-yellow-300 cursor-pointer"
+              className="text-white hover:text-blue-100"
             >
               <FaBars className="text-2xl" />
             </button>
             <h1 className="text-xl font-bold text-white">MachineWise</h1>
           </div>
 
-          {/* Right: Notification + User + Logout */}
           <div className="flex items-center gap-6">
             {isAuthenticated ? (
               <>
@@ -58,7 +56,7 @@ const Navbar = () => {
               </>
             ) : (
               <button
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 h-10 rounded-md text-sm font-semibold flex items-center gap-1"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2 h-10 rounded-md text-sm font-semibold flex items-center gap-1"
                 onClick={() => navigate("/login")}
               >
                 Login
@@ -68,7 +66,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Sidebar component */}
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
     </>
   );

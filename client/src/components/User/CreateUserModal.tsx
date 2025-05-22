@@ -79,7 +79,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
         {/* Modal Header */}
-        <div className="px-4 py-4 border-b bg-green-100 rounded-t-lg">
+        <div className="px-4 py-4 border-b bg-blue-300 rounded-t-lg">
           <h2 className="text-xl font-bold text-stone-800 font-serif">
             Create User
           </h2>

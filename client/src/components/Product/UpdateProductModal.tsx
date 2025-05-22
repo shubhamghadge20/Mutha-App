@@ -125,15 +125,13 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
-        {/* Header */}
-        <div className="px-4 py-4 border-b bg-green-100 rounded-t-lg">
+        <div className="px-4 py-4 border-b bg-blue-300 rounded-t-lg">
           <h2 className="text-xl font-bold text-stone-800 font-serif">
             Update Product
           </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 px-8 py-4">
-          {/* Product Name */}
           <div>
             <label className="block text-sm font-semibold text-stone-700 mb-1">
               Product Name
@@ -152,7 +150,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
             )}
           </div>
 
-          {/* Product Items */}
           <div>
             <h3 className="font-semibold text-stone-700 mb-2">Product Items</h3>
             {formData.items.map((item, index) => (
@@ -160,7 +157,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                 key={index}
                 className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4"
               >
-                {/* Name */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-700 mb-1">
                     Name
@@ -181,7 +177,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                   )}
                 </div>
 
-                {/* Value */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-700 mb-1">
                     Value
@@ -202,7 +197,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                   )}
                 </div>
 
-                {/* Upper Tolerance */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-700 mb-1">
                     Upper Tolerance
@@ -223,7 +217,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                   )}
                 </div>
 
-                {/* Lower Tolerance */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-700 mb-1">
                     Lower Tolerance
@@ -259,7 +252,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
             <button
               type="button"
               onClick={addItem}
-              className="text-green-600 hover:text-green-800 text-sm"
+              className="text-blue-600 hover:text-blue-800 text-sm"
             >
               + Add Item
             </button>
@@ -269,7 +262,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="mt-4 flex justify-end gap-3">
             <button
               type="button"
@@ -280,7 +272,7 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-medium"
+              className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium"
             >
               Update
             </button>

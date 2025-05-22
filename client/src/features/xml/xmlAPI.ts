@@ -1,12 +1,9 @@
-import { api } from "@/services/api";
+import { api } from "@services/api";
+import { XmlComparisonResponse } from "@/types/xmlComparison";
 
-export const fetchXmlCompare = async () => {
-  try {
-    const response = await api.get("/v1/xml/read-xml");
-    return response.data;
-  } catch (error: any) {
-    throw (
-      error.response?.data?.message || error.message || "Failed to fetch XML"
-    );
-  }
+export const fetchXmlComparison = async (
+  product: string
+): Promise<XmlComparisonResponse> => {
+  const response = await api.get(`/v1/xml/compare?product=${product}`);
+  return response.data;
 };

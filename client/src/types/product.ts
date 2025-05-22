@@ -1,5 +1,6 @@
 export interface ProductItem {
-  id?: string; // optional for items that exist in DB
+  id?: string; // alias for _id
+  _id?: string; // optional, original from DB
   name: string;
   value: number;
   uppertolerance: number;
@@ -18,7 +19,7 @@ export interface CreateProductInterface {
 }
 
 export interface UpdateProductInterface {
-  id: string;
+  id: string; // Make id required for update (better practice)
   name: string;
   items: ProductItem[];
 }

@@ -1,18 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchXmlCompare } from "./xmlAPI";
-import { toast } from "react-toastify";
+import { XmlComparisonResponse } from "@/types/xmlComparison";
+import { fetchXmlComparison } from "./xmlAPI"; // Async function version
 
-export interface XmlCompareDataItem {
-  productName: string;
-  itemName: string;
-  dbValue: number | null;
-  xmlValue: number | null;
-  difference: number | null;
-  status: string;
-}
-
-export interface XmlState {
-  data: XmlCompareDataItem[] | null;
+interface XmlState {
+  data: XmlComparisonResponse | null;
   loading: boolean;
   error: string | null;
 }
@@ -23,60 +14,36 @@ const initialState: XmlState = {
   error: null,
 };
 
-export const fetchXmlCompareThunk = createAsyncThunk<
-  XmlCompareDataItem[],
-  void,
-  { rejectValue: string }
->("xml/fetchXmlCompare", async (_, { rejectWithValue }) => {
-  try {
-    const response = await fetchXmlCompare();
-    return response;
-  } catch (error: any) {
-    return rejectWithValue(
-      error.response?.data?.message || "Failed to fetch XML data"
-    );
+export const fetchXmlComparisonThunk = createAsyncThunk(
+  "xml/fetchComparison",
+  async (product: string, { rejectWithValue }) => {
+    try {
+      return await fetchXmlComparison(product);
+    } catch (err: any) {
+      return rejectWithValue(err.message || "Error fetching XML comparison");
+    }
   }
-});
+);
 
 const xmlSlice = createSlice({
   name: "xml",
   initialState,
-  reducers: {
-    clearXmlData: (state) => {
-      state.data = null;
-      state.error = null;
-      state.loading = false;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchXmlCompareThunk.pending, (state) => {
+      .addCase(fetchXmlComparisonThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchXmlCompareThunk.fulfilled, (state, action) => {
+      .addCase(fetchXmlComparisonThunk.fulfilled, (state, action) => {
         state.loading = false;
-
-        if (Array.isArray(action.payload)) {
-          state.data = action.payload;
-        } else if (
-          action.payload &&
-          Array.isArray((action.payload as any).data)
-        ) {
-          state.data = (action.payload as any).data;
-        } else {
-          state.data = [];
-          toast.error("Received unexpected data format from API");
-        }
+        state.data = action.payload;
       })
-      .addCase(fetchXmlCompareThunk.rejected, (state, action) => {
+      .addCase(fetchXmlComparisonThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload ?? "Failed to fetch XML comparison data";
-        toast.error(state.error);
+        state.error = action.payload as string;
       });
   },
 });
-
-export const { clearXmlData } = xmlSlice.actions;
 
 export default xmlSlice.reducer;

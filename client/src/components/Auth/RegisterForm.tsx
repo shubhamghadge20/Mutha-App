@@ -71,9 +71,12 @@ const RegisterForm: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div
+      className="flex items-center justify-center"
+      style={{ fontFamily: "Arial, sans-serif" }}
+    >
       <div className="w-full max-w-xl p-10 sm:p-12 md:p-14 bg-white rounded-3xl shadow-2xl border border-stone-300">
-        <h2 className="mb-5 text-3xl font-bold text-center text-stone-800 font-serif tracking-wide">
+        <h2 className="mb-5 text-3xl font-bold text-center text-stone-800 tracking-wide">
           Create Account
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -81,6 +84,7 @@ const RegisterForm: React.FC = () => {
             <label
               htmlFor="name"
               className="w-32 text-sm font-semibold text-stone-700 text-left"
+              style={{ fontFamily: "Arial, sans-serif" }}
             >
               Full Name
             </label>
@@ -91,7 +95,7 @@ const RegisterForm: React.FC = () => {
               required
               value={formData.name}
               onChange={handleChange}
-              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="John Doe"
             />
           </div>
@@ -103,6 +107,7 @@ const RegisterForm: React.FC = () => {
             <label
               htmlFor="email"
               className="w-32 text-sm font-semibold text-stone-700 text-left"
+              style={{ fontFamily: "Arial, sans-serif" }}
             >
               Email Address
             </label>
@@ -113,7 +118,7 @@ const RegisterForm: React.FC = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="you@example.com"
             />
           </div>
@@ -125,6 +130,7 @@ const RegisterForm: React.FC = () => {
             <label
               htmlFor="mobile"
               className="w-32 text-sm font-semibold text-stone-700 text-left"
+              style={{ fontFamily: "Arial, sans-serif" }}
             >
               Mobile Number
             </label>
@@ -135,7 +141,7 @@ const RegisterForm: React.FC = () => {
               required
               value={formData.mobile}
               onChange={handleChange}
-              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="1234567890"
             />
           </div>
@@ -147,6 +153,7 @@ const RegisterForm: React.FC = () => {
             <label
               htmlFor="password"
               className="w-32 text-sm font-semibold text-stone-700 text-left"
+              style={{ fontFamily: "Arial, sans-serif" }}
             >
               Password
             </label>
@@ -157,7 +164,7 @@ const RegisterForm: React.FC = () => {
               required
               value={formData.password}
               onChange={handleChange}
-              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
             />
           </div>
@@ -167,15 +174,18 @@ const RegisterForm: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 font-semibold text-white bg-green-600 rounded-2xl hover:bg-green-700 transition duration-300 shadow-md"
+            className="w-full py-3 font-semibold text-white bg-blue-500 rounded-2xl hover:bg-blue-600 transition duration-300 shadow-md"
           >
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-center text-stone-600 ">
+        <p className="mt-6 text-sm text-center text-stone-600">
           Already have an account?{" "}
-          <Link to="/" className="text-green-600 font-medium hover:underline">
+          <Link
+            to="/login"
+            className="text-blue-600 hover:underline font-medium"
+          >
             Sign In
           </Link>
         </p>
@@ -183,4 +193,5 @@ const RegisterForm: React.FC = () => {
     </div>
   );
 };
+
 export default RegisterForm;

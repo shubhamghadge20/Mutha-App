@@ -68,9 +68,12 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div
+      className="flex items-center justify-center"
+      style={{ fontFamily: "Arial, sans-serif" }}
+    >
       <div className="w-full max-w-xl p-10 sm:p-12 md:p-14 bg-white rounded-3xl shadow-2xl border border-stone-300">
-        <h2 className="mb-5 text-3xl font-bold text-center text-stone-800 font-serif tracking-wide">
+        <h2 className="mb-5 text-3xl font-bold text-center text-stone-800 tracking-wide">
           Sign In
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -78,6 +81,7 @@ const LoginForm = () => {
             <label
               htmlFor="email"
               className="w-32 text-sm font-semibold text-stone-700 text-left"
+              style={{ fontFamily: "Arial, sans-serif" }}
             >
               Email Address
             </label>
@@ -88,7 +92,7 @@ const LoginForm = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               placeholder="you@example.com"
             />
           </div>
@@ -100,6 +104,7 @@ const LoginForm = () => {
             <label
               htmlFor="password"
               className="w-32 text-sm font-semibold text-stone-700 text-left"
+              style={{ fontFamily: "Arial, sans-serif" }}
             >
               Password
             </label>
@@ -110,7 +115,7 @@ const LoginForm = () => {
               required
               value={formData.password}
               onChange={handleChange}
-              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="flex-1 px-4 py-2.5 border rounded-xl border-stone-300 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               placeholder="••••••••"
             />
           </div>
@@ -120,7 +125,7 @@ const LoginForm = () => {
 
           <button
             type="submit"
-            className="w-full py-3 font-semibold text-white bg-green-600 rounded-2xl hover:bg-green-700 transition duration-300 shadow-md"
+            className="w-full py-3 font-semibold text-white bg-blue-500 rounded-2xl hover:bg-blue-600 transition duration-300 shadow-md"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -133,7 +138,7 @@ const LoginForm = () => {
           Don’t have an account?{" "}
           <Link
             to="/register"
-            className="text-green-600 hover:underline font-medium"
+            className="text-blue-600 hover:underline font-medium"
           >
             Register
           </Link>

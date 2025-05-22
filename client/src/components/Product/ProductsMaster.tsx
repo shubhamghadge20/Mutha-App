@@ -23,6 +23,9 @@ const ProductsMaster = () => {
   const [formData, setFormData] = useState<
     UpdateProductInterface | undefined
   >();
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     dispatch(getProductsThunk());
@@ -80,6 +83,10 @@ const ProductsMaster = () => {
     setSelectedId(null);
   };
 
+  const toggleProductExpand = (id: string) => {
+    setExpandedProductId((prev) => (prev === id ? null : id));
+  };
+
   return (
     <>
       <AlertModal
@@ -103,13 +110,13 @@ const ProductsMaster = () => {
       />
 
       <div className="w-full max-w-8xl mx-auto bg-white shadow-xl border border-gray-200 overflow-hidden m-8">
-        <div className="flex justify-between px-8 py-6 border-b bg-green-100">
+        <div className="flex justify-between px-8 py-6 border-b bg-blue-300">
           <h2 className="text-3xl font-bold text-stone-800 font-serif">
             Product Management
           </h2>
           <button
             onClick={() => setShowCreateProductModal(true)}
-            className="text-white bg-green-700 hover:bg-green-800 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center"
+            className="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center"
           >
             <FaPlus className="me-2" /> Create Product
           </button>
@@ -125,47 +132,58 @@ const ProductsMaster = () => {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="border border-gray-200 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                onClick={() => toggleProductExpand(product.id)}
+                className="border border-gray-200 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
               >
                 <h3 className="text-xl font-semibold text-stone-800">
                   {product.name}
                 </h3>
 
-                <div className="mt-2">
-                  {product.items?.length > 0 ? (
-                    product.items.map((item: ProductItem) => (
-                      <div
-                        key={item.name}
-                        className="text-stone-600 text-sm mt-1"
-                      >
-                        <p>
-                          <strong>{item.name}</strong>
-                        </p>
-                        <p>Value: {item.value}</p>
-                        <p>
-                          Tolerance:{" "}
-                          <span className="font-medium">
-                            Upper: {item.uppertolerance} - Lower:{" "}
-                            {item.lowertolerance}
-                          </span>
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-stone-400">No items available</p>
-                  )}
-                </div>
+                {expandedProductId === product.id && (
+                  <div className="mt-2">
+                    {product.items?.length > 0 ? (
+                      product.items.map((item: ProductItem, index) => (
+                        <div
+                          key={item.id ?? `${item.name}-${index}`}
+                          className="text-stone-600 text-sm mt-1"
+                        >
+                          <p>
+                            <strong>{item.name}</strong>
+                          </p>
+                          <p>Value: {item.value}</p>
+                          <p>
+                            Tolerance:{" "}
+                            <span className="font-medium">
+                              Upper: {item.uppertolerance} - Lower:{" "}
+                              {item.lowertolerance}
+                            </span>
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-stone-400">
+                        No items available
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-4 flex gap-4">
                   <button
-                    onClick={() => onUpdate(product.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdate(product.id);
+                    }}
                     className="text-blue-600 hover:text-blue-800"
                     title="Edit"
                   >
                     <FaEdit />
                   </button>
                   <button
-                    onClick={() => onDelete(product.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(product.id);
+                    }}
                     className="text-red-600 hover:text-red-800"
                     title="Delete"
                   >

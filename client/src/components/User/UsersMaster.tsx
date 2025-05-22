@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { UpdateUserInterface, User } from "@/types";
-import { deleteUserThunk, updateUserThunk } from "@/features/user";
+import {
+  deleteUserThunk,
+  updateUserThunk,
+  getUsersThunk,
+} from "@/features/user";
 import AlertModal from "../@/ui/AlertModal";
 import UpdateUserModal from "./UpdateUserModal";
 import CreateUserModal from "./CreateUserModal";
@@ -31,6 +35,11 @@ const UsersMaster = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formData, setFormData] = useState<UpdateUserInterface>();
 
+  // FETCH USERS ON COMPONENT MOUNT
+  useEffect(() => {
+    dispatch(getUsersThunk());
+  }, [dispatch]);
+
   const handleCancelCreateUser = () => {
     setShowCreateUserModal(false);
   };
@@ -46,7 +55,6 @@ const UsersMaster = () => {
     if (selectedId && formData) {
       try {
         const { isEmailVerified, id, ...cleanedUser } = formData;
-
         dispatch(updateUserThunk({ id: selectedId, formData: cleanedUser }));
       } catch (error: any) {
         console.log(error);
@@ -106,8 +114,8 @@ const UsersMaster = () => {
         setFormData={setFormData}
       />
 
-      <div className="w-full max-w-8xl mx-auto bg-white shadow-xl border border-gray-200 overflow-hidden m-8">
-        <div className="flex justify-between px-8 py-6 border-b bg-green-100">
+      <div className="w-full max-w-8xl mx-auto bg-white shadow-xl border border-gray-300 rounded-lg overflow-hidden m-8">
+        <div className="flex justify-between px-8 py-6 border-b bg-blue-300">
           <h2 className="text-3xl font-bold text-stone-800 font-serif">
             User Management
           </h2>
@@ -121,7 +129,9 @@ const UsersMaster = () => {
           </button>
         </div>
 
-        {loading && <p className="p-6 text-stone-600">Loading users...</p>}
+        {loading && (
+          <p className="p-6 text-stone-500 italic">Loading users...</p>
+        )}
         {error && (
           <p className="p-6 text-red-600 font-medium">Error: {error}</p>
         )}
@@ -134,12 +144,12 @@ const UsersMaster = () => {
                   {columns.map((col) => (
                     <th
                       key={col.key}
-                      className="px-6 py-3 border-b text-left text-xl font-medium text-stone-700 bg-gray-50"
+                      className="px-6 py-3 border-b text-left text-lg font-semibold text-stone-700 bg-gray-100"
                     >
                       {col.label}
                     </th>
                   ))}
-                  <th className="px-6 py-3 border-b text-left text-xl font-medium text-stone-700 bg-gray-50">
+                  <th className="px-6 py-3 border-b text-left text-lg font-semibold text-stone-700 bg-gray-100">
                     Action
                   </th>
                 </tr>
@@ -151,7 +161,10 @@ const UsersMaster = () => {
                     className="hover:bg-stone-50 transition-colors"
                   >
                     {columns.map((col) => (
-                      <td key={col.key} className="px-6 py-4 border-b text-sm">
+                      <td
+                        key={col.key}
+                        className="px-6 py-4 border-b text-stone-700 text-sm"
+                      >
                         {row[col.key]}
                       </td>
                     ))}
@@ -180,7 +193,7 @@ const UsersMaster = () => {
           </div>
         ) : (
           !loading && (
-            <p className="px-8 py-6 text-stone-500 text-sm">
+            <p className="px-8 py-6 text-stone-500 text-sm italic">
               No users found. Please add new users.
             </p>
           )

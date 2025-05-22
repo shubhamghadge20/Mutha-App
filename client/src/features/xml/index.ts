@@ -1,3 +1,2 @@
-export { fetchXmlCompareThunk, clearXmlData } from "./xmlSlice";
-
-export * from "./xmlAPI";
+export { fetchXmlComparisonThunk } from "./xmlSlice";
+export * from "./xmlSlice";

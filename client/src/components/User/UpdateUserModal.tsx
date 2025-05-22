@@ -51,7 +51,7 @@ const UpdateUserModal: React.FC<UpdateModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="px-6 py-4 border-b bg-yellow-100 rounded-t-lg">
+        <div className="px-6 py-4 border-b bg-blue-300 rounded-t-lg">
           <h2 className="text-2xl font-bold text-stone-800 font-serif">
             Update User
           </h2>
@@ -86,7 +86,6 @@ const UpdateUserModal: React.FC<UpdateModalProps> = ({
             )}
           </div>
 
-          {/* Email Field */}
           <div>
             <label
               htmlFor="email"

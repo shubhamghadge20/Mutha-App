@@ -15,7 +15,7 @@ const Sidebar = ({
     { id: 1, item: "Dashboard", path: "/" },
     { id: 2, item: "Users", path: "/users" },
     { id: 3, item: "Products", path: "/product" },
-    { id: 4, item: "xmlcompare", path: "/xmlcompare" },
+    { id: 4, item: "Datahistory", path: "/history" },
   ];
 
   return (
@@ -28,7 +28,7 @@ const Sidebar = ({
         <h2 className="text-lg font-bold text-stone-800">Menu</h2>
         <button
           onClick={onClose}
-          className="text-green-600 font-bold text-lg cursor-pointer"
+          className="text-blue-700 font-bold text-lg cursor-pointer"
         >
           <FaAngleDoubleLeft />
         </button>
@@ -43,8 +43,8 @@ const Sidebar = ({
             }}
             className={`py-2 px-4 rounded-lg cursor-pointer transition-colors ${
               location.pathname === entry.path
-                ? "bg-green-200 text-black font-semibold"
-                : "hover:bg-green-100"
+                ? "bg-blue-200 text-black font-semibold"
+                : "hover:bg-blue-100"
             }`}
           >
             {entry.item}
