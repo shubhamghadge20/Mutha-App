@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { XmlComparisonHistoryItem } from "@/types/xmlComparison";
-import { fetchXmlHistory } from "./xmlhistoryAPI";
+import { fetchXmlHistory, deleteXmlHistoryById } from "./xmlhistoryAPI";
 
 interface XmlHistoryState {
   data: XmlComparisonHistoryItem[];
@@ -16,10 +16,30 @@ const initialState: XmlHistoryState = {
   selected: null,
 };
 
-export const fetchXmlHistoryThunk = createAsyncThunk(
-  "xmlHistory/fetch",
-  async (product?: string) => await fetchXmlHistory(product)
-);
+export const fetchXmlHistoryThunk = createAsyncThunk<
+  XmlComparisonHistoryItem[],
+  string | undefined,
+  { rejectValue: string }
+>("xmlHistory/fetch", async (product, { rejectWithValue }) => {
+  try {
+    return await fetchXmlHistory(product);
+  } catch (error: any) {
+    return rejectWithValue(error.message || "Failed to fetch history");
+  }
+});
+
+export const deleteXmlHistoryThunk = createAsyncThunk<
+  string, // return type = deleted id
+  string, // argument type = id
+  { rejectValue: string }
+>("xmlHistory/delete", async (id, { rejectWithValue }) => {
+  try {
+    await deleteXmlHistoryById(id);
+    return id;
+  } catch (error: any) {
+    return rejectWithValue(error.message || "Delete failed");
+  }
+});
 
 const xmlHistorySlice = createSlice({
   name: "xmlHistory",
@@ -44,7 +64,25 @@ const xmlHistorySlice = createSlice({
       })
       .addCase(fetchXmlHistoryThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Failed to fetch history";
+        state.error = action.payload ?? "Failed to fetch history";
+      })
+
+      .addCase(deleteXmlHistoryThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteXmlHistoryThunk.fulfilled, (state, action) => {
+        state.loading = false;
+
+        state.data = state.data.filter((item) => item._id !== action.payload);
+
+        if (state.selected?._id === action.payload) {
+          state.selected = null;
+        }
+      })
+      .addCase(deleteXmlHistoryThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? "Failed to delete record";
       });
   },
 });

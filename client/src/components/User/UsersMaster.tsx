@@ -35,13 +35,18 @@ const UsersMaster = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formData, setFormData] = useState<UpdateUserInterface>();
 
-  // FETCH USERS ON COMPONENT MOUNT
   useEffect(() => {
     dispatch(getUsersThunk());
   }, [dispatch]);
 
-  const handleCancelCreateUser = () => {
-    setShowCreateUserModal(false);
+  const handleCancelCreateUser = () => setShowCreateUserModal(false);
+  const handleCancelUpdateUser = () => {
+    setShowUpdateUserModal(false);
+    setSelectedId(null);
+  };
+  const handleCancelDelete = () => {
+    setShowAlert(false);
+    setSelectedId(null);
   };
 
   const onUpdate = (id: string) => {
@@ -57,15 +62,10 @@ const UsersMaster = () => {
         const { isEmailVerified, id, ...cleanedUser } = formData;
         dispatch(updateUserThunk({ id: selectedId, formData: cleanedUser }));
       } catch (error: any) {
-        console.log(error);
+        console.error(error);
         toast.error(error || "Update operation failed");
       }
     }
-    setShowUpdateUserModal(false);
-    setSelectedId(null);
-  };
-
-  const handleCancelUpdateUser = () => {
     setShowUpdateUserModal(false);
     setSelectedId(null);
   };
@@ -80,15 +80,10 @@ const UsersMaster = () => {
       try {
         dispatch(deleteUserThunk(selectedId));
       } catch (error: any) {
-        console.log(error);
+        console.error(error);
         toast.error(error || "Delete operation failed");
       }
     }
-    setShowAlert(false);
-    setSelectedId(null);
-  };
-
-  const handleCancelDelete = () => {
     setShowAlert(false);
     setSelectedId(null);
   };
@@ -105,7 +100,6 @@ const UsersMaster = () => {
         open={showCreateUserModal}
         onClose={handleCancelCreateUser}
       />
-
       <UpdateUserModal
         open={showUpdateUserModal}
         onClose={handleCancelUpdateUser}
@@ -114,43 +108,47 @@ const UsersMaster = () => {
         setFormData={setFormData}
       />
 
-      <div className="w-full max-w-8xl mx-auto bg-white shadow-xl border border-gray-300 rounded-lg overflow-hidden m-8">
-        <div className="flex justify-between px-8 py-6 border-b bg-blue-300">
-          <h2 className="text-3xl font-bold text-stone-800 font-serif">
+      <div className="max-w-7xl mx-auto my-10 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="flex justify-between items-center px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-400 shadow-md rounded-t-xl">
+          <h2 className="text-3xl font-bold text-white font-serif tracking-wide">
             User Management
           </h2>
           <button
             type="button"
             onClick={() => setShowCreateUserModal(true)}
-            className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 text-white font-semibold rounded-lg px-5 py-2 transition"
           >
-            <FaUser className="w-3.5 h-3.5 me-2" />
+            <FaUser className="w-4 h-4" />
             Create User
           </button>
         </div>
 
         {loading && (
-          <p className="p-6 text-stone-500 italic">Loading users...</p>
+          <p className="p-6 text-stone-500 italic text-center">
+            Loading users...
+          </p>
         )}
         {error && (
-          <p className="p-6 text-red-600 font-medium">Error: {error}</p>
+          <p className="p-6 text-red-600 font-medium text-center">
+            Error: {error}
+          </p>
         )}
 
         {users?.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
+            <table className="min-w-full border-collapse table-auto">
               <thead>
-                <tr>
+                <tr className="bg-gray-50 border-b border-gray-200">
                   {columns.map((col) => (
                     <th
                       key={col.key}
-                      className="px-6 py-3 border-b text-left text-lg font-semibold text-stone-700 bg-gray-100"
+                      className="px-6 py-4 text-left text-md font-semibold text-gray-700 tracking-wide select-none"
                     >
                       {col.label}
                     </th>
                   ))}
-                  <th className="px-6 py-3 border-b text-left text-lg font-semibold text-stone-700 bg-gray-100">
-                    Action
+                  <th className="px-6 py-4 text-left text-md font-semibold text-gray-700 tracking-wide select-none">
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -158,31 +156,33 @@ const UsersMaster = () => {
                 {users.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-stone-50 transition-colors"
+                    className="even:bg-gray-50 hover:bg-blue-50 transition-colors"
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className="px-6 py-4 border-b text-stone-700 text-sm"
+                        className="px-6 py-4 text-gray-800 text-sm whitespace-nowrap"
                       >
                         {row[col.key]}
                       </td>
                     ))}
-                    <td className="px-6 py-4 border-b text-sm">
-                      <div className="flex items-center gap-4">
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={() => onUpdate(row.id)}
-                          className="text-blue-600 hover:text-blue-800 transition-colors mx-2"
+                          className="text-blue-600 hover:text-blue-800 transition"
                           title="Edit"
+                          aria-label={`Edit user ${row.name}`}
                         >
-                          <FaEdit className="text-lg cursor-pointer" />
+                          <FaEdit className="w-5 h-5 cursor-pointer" />
                         </button>
                         <button
                           onClick={() => onDelete(row.id)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
+                          className="text-red-600 hover:text-red-800 transition"
                           title="Delete"
+                          aria-label={`Delete user ${row.name}`}
                         >
-                          <FaTrashAlt className="text-lg cursor-pointer" />
+                          <FaTrashAlt className="w-5 h-5 cursor-pointer" />
                         </button>
                       </div>
                     </td>
@@ -193,7 +193,7 @@ const UsersMaster = () => {
           </div>
         ) : (
           !loading && (
-            <p className="px-8 py-6 text-stone-500 text-sm italic">
+            <p className="px-8 py-10 text-center text-stone-500 text-sm italic">
               No users found. Please add new users.
             </p>
           )

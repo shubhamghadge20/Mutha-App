@@ -13,6 +13,7 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  authChecked: boolean;
 }
 
 const initialState: AuthState = {
@@ -21,6 +22,7 @@ const initialState: AuthState = {
   loading: false,
   error: null,
   isAuthenticated: false,
+  authChecked: false,
 };
 
 export const registerThunk = createAsyncThunk(
@@ -42,13 +44,11 @@ export const loginThunk = createAsyncThunk(
   async (formData: LoginFormInterface, { rejectWithValue }) => {
     try {
       const data = await login(formData);
-
       localStorage.setItem("accessToken", data.tokens.access.token);
       localStorage.setItem("accessTokenExpires", data.tokens.access.expires);
       localStorage.setItem("refreshToken", data.tokens.refresh.token);
       localStorage.setItem("refreshTokenExpires", data.tokens.refresh.expires);
       localStorage.setItem("user", JSON.stringify(data.user));
-
       return data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Login failed");
@@ -62,15 +62,12 @@ export const logoutThunk = createAsyncThunk(
     const state = getState() as { auth: AuthState };
     const refreshToken = state.auth.tokens?.tokens.refresh.token;
 
-    if (!refreshToken) {
-      return rejectWithValue("No refresh token found");
-    }
+    if (!refreshToken) return rejectWithValue("No refresh token found");
 
     try {
       localStorage.clear();
       dispatch(clearTokens());
       await logout({ refreshToken });
-      return;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Logout failed");
     }
@@ -90,24 +87,34 @@ const authSlice = createSlice({
     clearTokens: (state) => {
       state.tokens = null;
       state.user = null;
+      state.isAuthenticated = false;
     },
     setAuthFromStorage: (state) => {
-      const access = {
-        token: localStorage.getItem("accessToken") || "",
-        expires: localStorage.getItem("accessTokenExpires") || "",
-      };
-      const refresh = {
-        token: localStorage.getItem("refreshToken") || "",
-        expires: localStorage.getItem("refreshTokenExpires") || "",
-      };
-
+      const accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
       const userString = localStorage.getItem("user");
 
-      if (access.token && refresh.token && userString) {
-        state.tokens = { tokens: { access, refresh } };
+      if (accessToken && refreshToken && userString) {
+        state.tokens = {
+          tokens: {
+            access: {
+              token: accessToken,
+              expires: localStorage.getItem("accessTokenExpires") || "",
+            },
+            refresh: {
+              token: refreshToken,
+              expires: localStorage.getItem("refreshTokenExpires") || "",
+            },
+          },
+        };
         state.user = JSON.parse(userString);
         state.isAuthenticated = true;
+      } else {
+        state.tokens = null;
+        state.user = null;
+        state.isAuthenticated = false;
       }
+      state.authChecked = true;
     },
   },
   extraReducers: (builder) => {
@@ -124,9 +131,7 @@ const authSlice = createSlice({
       .addCase(registerThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      });
-
-    builder
+      })
       .addCase(loginThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -142,9 +147,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
         state.isAuthenticated = false;
-      });
-
-    builder
+      })
       .addCase(logoutThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -162,5 +165,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setTokens, clearTokens, setAuthFromStorage } = authSlice.actions;
+export const { setTokens, clearTokens, setAuthFromStorage, setUser } =
+  authSlice.actions;
 export default authSlice.reducer;

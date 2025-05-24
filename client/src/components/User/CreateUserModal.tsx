@@ -76,22 +76,19 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
-        {/* Modal Header */}
-        <div className="px-4 py-4 border-b bg-blue-300 rounded-t-lg">
-          <h2 className="text-xl font-bold text-stone-800 font-serif">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="px-6 py-4 border-b border-blue-500 bg-blue-600 rounded-t-lg">
+          <h2 className="text-xl font-bold text-white font-serif">
             Create User
           </h2>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 px-12 py-4">
-          {/* Full Name */}
+        <form onSubmit={handleSubmit} className="space-y-6 px-10 py-6">
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-semibold text-stone-700 mb-1"
+              className="block text-sm font-semibold text-blue-900 mb-1"
             >
               Full Name
             </label>
@@ -101,19 +98,20 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
               id="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full px-4 py-2 border rounded-xl bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.name ? "border-red-500" : "border-blue-300"
+              }`}
               placeholder="John Doe"
             />
             {errors.name && (
-              <p className="text-sm text-red-600">{errors.name}</p>
+              <p className="text-sm text-red-600 mt-1">{errors.name}</p>
             )}
           </div>
 
-          {/* Email */}
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-semibold text-stone-700 mb-1"
+              className="block text-sm font-semibold text-blue-900 mb-1"
             >
               Email Address
             </label>
@@ -123,19 +121,20 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
               id="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full px-4 py-2 border rounded-xl bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.email ? "border-red-500" : "border-blue-300"
+              }`}
               placeholder="you@example.com"
             />
             {errors.email && (
-              <p className="text-sm text-red-600">{errors.email}</p>
+              <p className="text-sm text-red-600 mt-1">{errors.email}</p>
             )}
           </div>
 
-          {/* Mobile */}
           <div>
             <label
               htmlFor="mobile"
-              className="block text-sm font-semibold text-stone-700 mb-1"
+              className="block text-sm font-semibold text-blue-900 mb-1"
             >
               Mobile Number
             </label>
@@ -145,19 +144,20 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
               id="mobile"
               value={formData.mobile}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full px-4 py-2 border rounded-xl bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.mobile ? "border-red-500" : "border-blue-300"
+              }`}
               placeholder="1234567890"
             />
             {errors.mobile && (
-              <p className="text-sm text-red-600">{errors.mobile}</p>
+              <p className="text-sm text-red-600 mt-1">{errors.mobile}</p>
             )}
           </div>
 
-          {/* Role */}
           <div>
             <label
               htmlFor="role"
-              className="block text-sm font-semibold text-stone-700 mb-1"
+              className="block text-sm font-semibold text-blue-900 mb-1"
             >
               Role
             </label>
@@ -166,22 +166,23 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
               id="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full px-4 py-2 border rounded-xl bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.role ? "border-red-500" : "border-blue-300"
+              }`}
             >
               <option value="">Select Role</option>
               <option value="admin">Admin</option>
               <option value="operator">Operator</option>
             </select>
             {errors.role && (
-              <p className="text-sm text-red-600">{errors.role}</p>
+              <p className="text-sm text-red-600 mt-1">{errors.role}</p>
             )}
           </div>
 
-          {/* Password */}
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-semibold text-stone-700 mb-1"
+              className="block text-sm font-semibold text-blue-900 mb-1"
             >
               Password
             </label>
@@ -191,26 +192,27 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ open, onClose }) => {
               id="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full px-4 py-2 border rounded-xl bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.password ? "border-red-500" : "border-blue-300"
+              }`}
               placeholder="••••••••"
             />
             {errors.password && (
-              <p className="text-sm text-red-600">{errors.password}</p>
+              <p className="text-sm text-red-600 mt-1">{errors.password}</p>
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="mt-4 flex justify-end gap-3">
+          <div className="mt-6 flex justify-end gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+              className="px-5 py-2 rounded-lg bg-blue-100 text-blue-800 hover:bg-blue-200 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-green-700 hover:bg-green-800 text-white font-medium"
+              className="px-5 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold transition"
             >
               Create
             </button>

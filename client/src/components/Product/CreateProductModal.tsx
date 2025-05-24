@@ -53,7 +53,6 @@ const initialData: CreateProductInterface = {
   name: "",
   items: fixedItemNames.map((name) => ({
     name,
-    value: 0,
     uppertolerance: 0,
     lowertolerance: 0,
   })),
@@ -67,28 +66,43 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState<CreateProductInterface>(initialData);
   const [errors, setErrors] = useState<Partial<ErrorsInterface>>({});
 
   const validateForm = () => {
     const newErrors: Partial<ErrorsInterface> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.name.trim()) {
+      newErrors.name = "Product name is required";
+    }
 
     formData.items.forEach((item, index) => {
-      if (item.value === undefined || isNaN(item.value))
-        newErrors[
-          `itemValue_${index}`
-        ] = `Value is required for item ${item.name}`;
-      if (item.uppertolerance === undefined || isNaN(item.uppertolerance))
+      const upper = item.uppertolerance;
+      const lower = item.lowertolerance;
+
+      if (upper === undefined || isNaN(upper)) {
         newErrors[
           `itemUpper_${index}`
-        ] = `Upper tolerance is required for item ${item.name}`;
-      if (item.lowertolerance === undefined || isNaN(item.lowertolerance))
+        ] = `Upper tolerance is required for ${item.name}`;
+      }
+
+      if (lower === undefined || isNaN(lower)) {
         newErrors[
           `itemLower_${index}`
-        ] = `Lower tolerance is required for item ${item.name}`;
+        ] = `Lower tolerance is required for ${item.name}`;
+      }
+
+      if (typeof upper === "number" && typeof lower === "number") {
+        if (upper === 0 && lower === 0) {
+        } else if (upper <= lower) {
+          newErrors[
+            `itemUpper_${index}`
+          ] = `Upper tolerance must be greater than lower tolerance for ${item.name}`;
+          newErrors[
+            `itemLower_${index}`
+          ] = `Lower tolerance must be less than upper tolerance for ${item.name}`;
+        }
+      }
     });
 
     setErrors(newErrors);
@@ -97,7 +111,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
   const handleItemChange = (
     index: number,
-    field: keyof Omit<ProductItem, "name">,
+    field: keyof Omit<ProductItem, "name" | "value">,
     value: string
   ) => {
     setFormData((prev) => {
@@ -115,12 +129,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       ...prev,
       items: [
         ...prev.items,
-        {
-          name: "",
-          value: 0,
-          uppertolerance: 0,
-          lowertolerance: 0,
-        },
+        { name: "", uppertolerance: 0, lowertolerance: 0 },
       ],
     }));
   };
@@ -142,20 +151,20 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       onClose();
       navigate("/product");
     } catch (error: any) {
-      toast.error(error?.message || "Creation failed");
+      toast.error(error?.message || "Product creation failed");
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
-      <div className="bg-white dark:bg-blue-800 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="px-4 py-4 border-b bg-blue-300 rounded-t-lg">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-screen overflow-y-auto">
+        <div className="px-6 py-4 border-b bg-blue-300 rounded-t-lg">
           <h2 className="text-xl font-bold text-stone-800 font-serif">
             Create Product
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 px-8 py-4">
+        <form onSubmit={handleSubmit} className="space-y-6 px-8 py-6">
           <div>
             <label className="block text-sm font-semibold text-stone-700 mb-1">
               Product Name
@@ -166,24 +175,24 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
-              className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800"
+              className={`w-full px-4 py-2 border rounded-xl ${
+                errors.name ? "border-red-500" : "border-stone-300"
+              } bg-stone-50 text-stone-800`}
               placeholder="Enter product name"
             />
             {errors.name && (
-              <p className="text-sm text-red-600">{errors.name}</p>
+              <p className="text-sm text-red-600 mt-1">{errors.name}</p>
             )}
           </div>
 
           <div>
             <h3 className="font-semibold text-stone-700 mb-2">Product Items</h3>
-
             {formData.items.map((item, index) => {
               const isFixedName = fixedItemNames.includes(item.name);
-
               return (
                 <div
                   key={index}
-                  className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 items-end"
+                  className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-end"
                 >
                   <div>
                     <label className="block text-sm font-semibold text-stone-700 mb-1">
@@ -216,32 +225,11 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
                   <div>
                     <label className="block text-sm font-semibold text-stone-700 mb-1">
-                      Value
-                    </label>
-                    <input
-                      type="number"
-                      value={item.value}
-                      placeholder="Value"
-                      onChange={(e) =>
-                        handleItemChange(index, "value", e.target.value)
-                      }
-                      className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800"
-                    />
-                    {errors[`itemValue_${index}`] && (
-                      <p className="text-sm text-red-600">
-                        {errors[`itemValue_${index}`]}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-stone-700 mb-1">
                       Upper Tolerance
                     </label>
                     <input
                       type="number"
                       value={item.uppertolerance}
-                      placeholder="Upper Tolerance"
                       onChange={(e) =>
                         handleItemChange(
                           index,
@@ -249,10 +237,15 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                           e.target.value
                         )
                       }
-                      className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800"
+                      placeholder="Upper"
+                      className={`w-full px-4 py-2 border rounded-xl ${
+                        errors[`itemUpper_${index}`]
+                          ? "border-red-500"
+                          : "border-stone-300"
+                      } bg-stone-50 text-stone-800`}
                     />
                     {errors[`itemUpper_${index}`] && (
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-red-600 mt-1">
                         {errors[`itemUpper_${index}`]}
                       </p>
                     )}
@@ -265,7 +258,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     <input
                       type="number"
                       value={item.lowertolerance}
-                      placeholder="Lower Tolerance"
                       onChange={(e) =>
                         handleItemChange(
                           index,
@@ -273,10 +265,15 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                           e.target.value
                         )
                       }
-                      className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800"
+                      placeholder="Lower"
+                      className={`w-full px-4 py-2 border rounded-xl ${
+                        errors[`itemLower_${index}`]
+                          ? "border-red-500"
+                          : "border-stone-300"
+                      } bg-stone-50 text-stone-800`}
                     />
                     {errors[`itemLower_${index}`] && (
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-red-600 mt-1">
                         {errors[`itemLower_${index}`]}
                       </p>
                     )}
@@ -286,7 +283,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(index)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 hover:text-red-800 text-sm"
                     >
                       Remove
                     </button>
@@ -295,18 +292,16 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
               );
             })}
 
-            <div className="mt-2">
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="text-blue-600 hover:text-blue-800 text-sm"
-              >
-                + Add Item
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleAddItem}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              + Add Item
+            </button>
           </div>
 
-          <div className="mt-4 flex justify-end gap-3">
+          <div className="pt-4 flex justify-end gap-3 border-t">
             <button
               type="button"
               onClick={onClose}

@@ -44,20 +44,33 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
             index + 1
           }: Name is required`;
         }
-        if (item.value === undefined || isNaN(item.value)) {
-          newErrors[`itemValue_${index}`] = `Item ${
-            index + 1
-          }: Value is required`;
-        }
+
         if (item.uppertolerance === undefined || isNaN(item.uppertolerance)) {
           newErrors[`itemUpper_${index}`] = `Item ${
             index + 1
           }: Upper tolerance is required`;
         }
+
         if (item.lowertolerance === undefined || isNaN(item.lowertolerance)) {
           newErrors[`itemLower_${index}`] = `Item ${
             index + 1
           }: Lower tolerance is required`;
+        }
+
+        if (
+          item.uppertolerance !== undefined &&
+          item.lowertolerance !== undefined &&
+          !isNaN(item.uppertolerance) &&
+          !isNaN(item.lowertolerance)
+        ) {
+          // Accept if both zero
+          if (!(item.uppertolerance === 0 && item.lowertolerance === 0)) {
+            if (item.uppertolerance <= item.lowertolerance) {
+              newErrors[`itemTolerance_${index}`] = `Item ${
+                index + 1
+              }: Upper tolerance must be greater than lower tolerance`;
+            }
+          }
         }
       });
     }
@@ -179,26 +192,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-semibold text-stone-700 mb-1">
-                    Value
-                  </label>
-                  <input
-                    type="number"
-                    value={item.value}
-                    placeholder="Item Value"
-                    onChange={(e) =>
-                      handleItemChange(index, "value", e.target.value)
-                    }
-                    className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800"
-                  />
-                  {errors[`itemValue_${index}`] && (
-                    <p className="text-sm text-red-600">
-                      {errors[`itemValue_${index}`]}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-stone-700 mb-1">
                     Upper Tolerance
                   </label>
                   <input
@@ -246,6 +239,12 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
                     Remove
                   </button>
                 </div>
+
+                {errors[`itemTolerance_${index}`] && (
+                  <p className="text-sm text-red-600 col-span-5">
+                    {errors[`itemTolerance_${index}`]}
+                  </p>
+                )}
               </div>
             ))}
 

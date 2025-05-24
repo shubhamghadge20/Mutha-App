@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { RegisterForm, LoginForm, setAuthFromStorage } from "@features/auth";
-import { useAppDispatch } from "@/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
@@ -18,16 +18,16 @@ import XmlHistoryPage from "./pages/XmlHisory";
 
 function App() {
   const dispatch = useAppDispatch();
+  const authChecked = useAppSelector((state) => state.auth.authChecked);
   const { checkTokenExpiration, tryRefreshToken } = useAuth();
 
   useEffect(() => {
     dispatch(setAuthFromStorage());
-
-    // Check token and refresh if needed
-    if (!checkTokenExpiration()) {
-      tryRefreshToken();
-    }
+    if (!checkTokenExpiration()) tryRefreshToken();
   }, [dispatch]);
+
+  if (!authChecked)
+    return <div className="p-6 text-center">Checking authentication...</div>;
 
   return (
     <Router>
@@ -99,7 +99,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Footer />

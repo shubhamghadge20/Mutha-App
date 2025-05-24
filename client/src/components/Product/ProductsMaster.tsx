@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlus } from "react-icons/fa";
-import { toast } from "react-toastify";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaPlus,
+  FaChevronDown,
+  FaChevronUp,
+} from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { ProductItem, UpdateProductInterface } from "@/types";
 import {
@@ -20,9 +25,7 @@ const ProductsMaster = () => {
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
   const [showUpdateProductModal, setShowUpdateProductModal] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<
-    UpdateProductInterface | undefined
-  >();
+  const [formData, setFormData] = useState<UpdateProductInterface>();
   const [expandedProductId, setExpandedProductId] = useState<string | null>(
     null
   );
@@ -31,19 +34,36 @@ const ProductsMaster = () => {
     dispatch(getProductsThunk());
   }, [dispatch]);
 
-  const handleCancelCreateProduct = () => {
-    setShowCreateProductModal(false);
+  const toggleProductExpand = (id: string) =>
+    setExpandedProductId((prev) => (prev === id ? null : id));
+
+  const handleCancelCreateProduct = () => setShowCreateProductModal(false);
+  const handleCancelUpdateProduct = () => {
+    setShowUpdateProductModal(false);
+    setSelectedId(null);
+  };
+  const handleCancelDelete = () => {
+    setShowAlert(false);
+    setSelectedId(null);
   };
 
   const onUpdate = (id: string) => {
     const product = products.find((p) => p.id === id);
+    if (!product) return;
+    setFormData({ id: product.id, name: product.name, items: product.items });
     setSelectedId(id);
-    setFormData({
-      id: product?.id || "",
-      name: product?.name || "",
-      items: product?.items || [],
-    });
     setShowUpdateProductModal(true);
+  };
+
+  const onDelete = (id: string) => {
+    setSelectedId(id);
+    setShowAlert(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedId) dispatch(deleteProductThunk(selectedId));
+    setShowAlert(false);
+    setSelectedId(null);
   };
 
   const handleConfirmUpdateProduct = () => {
@@ -53,38 +73,6 @@ const ProductsMaster = () => {
       setFormData(undefined);
       setSelectedId(null);
     }
-  };
-
-  const handleCancelUpdateProduct = () => {
-    setShowUpdateProductModal(false);
-    setSelectedId(null);
-  };
-
-  const onDelete = (id: string) => {
-    setSelectedId(id);
-    setShowAlert(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedId) {
-      try {
-        dispatch(deleteProductThunk(selectedId));
-      } catch (error: any) {
-        console.error(error);
-        toast.error("Delete operation failed");
-      }
-    }
-    setShowAlert(false);
-    setSelectedId(null);
-  };
-
-  const handleCancelDelete = () => {
-    setShowAlert(false);
-    setSelectedId(null);
-  };
-
-  const toggleProductExpand = (id: string) => {
-    setExpandedProductId((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -109,94 +97,106 @@ const ProductsMaster = () => {
         setFormData={setFormData}
       />
 
-      <div className="w-full max-w-8xl mx-auto bg-white shadow-xl border border-gray-200 overflow-hidden m-8">
-        <div className="flex justify-between px-8 py-6 border-b bg-blue-300">
-          <h2 className="text-3xl font-bold text-stone-800 font-serif">
-            Product Management
+      <div className="max-w-7xl mx-auto py-10 px-6">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-4xl font-bold text-gray-800 font-serif">
+            🛠️ Product Management
           </h2>
           <button
             onClick={() => setShowCreateProductModal(true)}
-            className="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center"
+            className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2"
           >
-            <FaPlus className="me-2" /> Create Product
+            <FaPlus /> Create Product
           </button>
         </div>
 
-        {loading && <p className="p-6 text-stone-600">Loading products...</p>}
+        {loading && (
+          <p className="text-center text-gray-600 text-lg">Loading...</p>
+        )}
         {error && (
-          <p className="p-6 text-red-600 font-medium">Error: {error}</p>
+          <p className="text-center text-red-500 font-medium">{error}</p>
         )}
 
         {products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                onClick={() => toggleProductExpand(product.id)}
-                className="border border-gray-200 p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-              >
-                <h3 className="text-xl font-semibold text-stone-800">
-                  {product.name}
-                </h3>
-
-                {expandedProductId === product.id && (
-                  <div className="mt-2">
-                    {product.items?.length > 0 ? (
-                      product.items.map((item: ProductItem, index) => (
-                        <div
-                          key={item.id ?? `${item.name}-${index}`}
-                          className="text-stone-600 text-sm mt-1"
-                        >
-                          <p>
-                            <strong>{item.name}</strong>
-                          </p>
-                          <p>Value: {item.value}</p>
-                          <p>
-                            Tolerance:{" "}
-                            <span className="font-medium">
-                              Upper: {item.uppertolerance} - Lower:{" "}
-                              {item.lowertolerance}
-                            </span>
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-stone-400">
-                        No items available
-                      </p>
-                    )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((product) => {
+              const isExpanded = expandedProductId === product.id;
+              return (
+                <div
+                  key={product.id}
+                  className={`bg-white/80 backdrop-blur-md shadow-2xl border border-gray-200 rounded-xl overflow-hidden hover:shadow-blue-300 transition`}
+                >
+                  <div
+                    onClick={() => toggleProductExpand(product.id)}
+                    className="p-5 cursor-pointer flex justify-between items-center"
+                  >
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {product.name}
+                    </h3>
+                    <span className="text-gray-500">
+                      {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+                    </span>
                   </div>
-                )}
 
-                <div className="mt-4 flex gap-4">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdate(product.id);
-                    }}
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Edit"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(product.id);
-                    }}
-                    className="text-red-600 hover:text-red-800"
-                    title="Delete"
-                  >
-                    <FaTrashAlt />
-                  </button>
+                  {isExpanded && (
+                    <div className="px-5 pb-4 space-y-3 animate-fade-in">
+                      {product.items.length > 0 ? (
+                        product.items.map((item: ProductItem, idx: number) => (
+                          <div
+                            key={item.id ?? `${item.name}-${idx}`}
+                            className="bg-gray-100 p-3 rounded-md border border-gray-300"
+                          >
+                            <p className="text-sm font-semibold text-gray-700">
+                              {item.name}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Upper:{" "}
+                              <span className="text-green-700 font-medium">
+                                {item.uppertolerance}
+                              </span>{" "}
+                              | Lower:{" "}
+                              <span className="text-red-700 font-medium">
+                                {item.lowertolerance}
+                              </span>
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-400">No items found.</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="border-t flex justify-end gap-4 px-5 py-3 bg-gray-50">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdate(product.id);
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(product.id);
+                      }}
+                      className="text-red-600 hover:text-red-800"
+                      title="Delete"
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           !loading && (
-            <p className="px-8 py-6 text-stone-500 text-sm">
-              No products found. Please add a new product.
+            <p className="text-center text-gray-500 text-lg mt-10">
+              No products found. Try adding one!
             </p>
           )
         )}

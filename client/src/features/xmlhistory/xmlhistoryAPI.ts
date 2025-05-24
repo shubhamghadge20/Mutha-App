@@ -8,3 +8,10 @@ export const fetchXmlHistory = async (
   const response = await api.get(url);
   return response.data;
 };
+
+export const deleteXmlHistoryById = async (
+  id: string
+): Promise<{ message: string }> => {
+  const response = await api.delete(`/v1/history/${id}`);
+  return response.data;
+};

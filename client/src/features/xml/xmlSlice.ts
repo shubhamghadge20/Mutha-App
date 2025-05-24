@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { XmlComparisonResponse } from "@/types/xmlComparison";
-import { fetchXmlComparison } from "./xmlAPI"; // Async function version
+import { fetchXmlComparison } from "./xmlAPI";
 
 interface XmlState {
   data: XmlComparisonResponse | null;

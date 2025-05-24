@@ -5,6 +5,11 @@ const fetchHistory = async (product) => {
   return XmlComparison.find(filter).sort({ date: -1 });
 };
 
+const deleteHistoryById = async (id) => {
+  return XmlComparison.findByIdAndDelete(id);
+};
+
 module.exports = {
   fetchHistory,
+  deleteHistoryById,
 };

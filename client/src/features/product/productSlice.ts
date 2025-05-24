@@ -121,7 +121,6 @@ const productSlice = createSlice({
       .addCase(createProductThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        toast.error("Create product failed");
       })
 
       .addCase(getProductThunk.pending, (state) => {

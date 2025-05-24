@@ -16,10 +16,6 @@ const productSchema = new mongoose.Schema(
             type: String,
             required: true,
           },
-          value: {
-            type: Number,
-            required: true,
-          },
           uppertolerance: {
             type: Number,
             required: true,

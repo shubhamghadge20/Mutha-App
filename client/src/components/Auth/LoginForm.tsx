@@ -12,6 +12,23 @@ const initialData: LoginFormInterface = {
   password: "",
 };
 
+// Reusable Label component
+const FormLabel = ({
+  htmlFor,
+  children,
+}: {
+  htmlFor: string;
+  children: React.ReactNode;
+}) => (
+  <label
+    htmlFor={htmlFor}
+    className="w-32 text-sm font-semibold text-stone-700 text-left"
+    style={{ fontFamily: "Arial, sans-serif" }}
+  >
+    {children}
+  </label>
+);
+
 const LoginForm = () => {
   const navigate = useNavigate();
   const { handleLogin } = useAuth();
@@ -78,13 +95,7 @@ const LoginForm = () => {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex items-center gap-4 mb-8">
-            <label
-              htmlFor="email"
-              className="w-32 text-sm font-semibold text-stone-700 text-left"
-              style={{ fontFamily: "Arial, sans-serif" }}
-            >
-              Email Address
-            </label>
+            <FormLabel htmlFor="email">Email Address</FormLabel>
             <input
               type="email"
               id="email"
@@ -101,13 +112,7 @@ const LoginForm = () => {
           )}
 
           <div className="flex items-center gap-4 mb-8">
-            <label
-              htmlFor="password"
-              className="w-32 text-sm font-semibold text-stone-700 text-left"
-              style={{ fontFamily: "Arial, sans-serif" }}
-            >
-              Password
-            </label>
+            <FormLabel htmlFor="password">Password</FormLabel>
             <input
               type="password"
               id="password"

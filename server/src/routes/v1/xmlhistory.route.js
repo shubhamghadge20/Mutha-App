@@ -1,8 +1,25 @@
 const express = require('express');
-const { getXmlComparisonHistory } = require('../../controllers/xmlHistory.controller');
+const auth = require('../../middlewares/auth');
+const validate = require('../../middlewares/validate');
+const xmlHistoryValidation = require('../../validations/xmlHistory.validation');
+const xmlHistoryController = require('../../controllers/xmlHistory.controller');
 
 const router = express.Router();
 
-router.get('/', getXmlComparisonHistory);
+router
+  .route('/')
+  .get(
+    auth('getXmlHistory'),
+    validate(xmlHistoryValidation.getXmlComparisonHistory),
+    xmlHistoryController.getXmlComparisonHistory
+  );
+
+router
+  .route('/:id')
+  .delete(
+    auth('manageXmlHistory'),
+    validate(xmlHistoryValidation.deleteXmlComparisonHistory),
+    xmlHistoryController.deleteXmlComparisonHistory
+  );
 
 module.exports = router;

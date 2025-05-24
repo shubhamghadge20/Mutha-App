@@ -21,34 +21,42 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-blue-400 shadow-md px-6 py-3">
-        <div className="flex items-center justify-between">
+      <nav className="bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg px-6 py-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-6 cursor-pointer">
             <button
               onClick={toggleSidebar}
-              className="text-white hover:text-blue-100"
+              aria-label="Toggle sidebar"
+              className="text-white hover:text-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
             >
-              <FaBars className="text-2xl" />
+              <FaBars className="text-3xl" />
             </button>
-            <h1 className="text-xl font-bold text-white">MachineWise</h1>
+            <h1 className="text-2xl font-extrabold text-white tracking-wide select-none">
+              MachineWise
+            </h1>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-8">
             {isAuthenticated ? (
               <>
-                <button className="relative text-white hover:text-yellow-300">
-                  <FaBell className="text-xl" />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-600" />
+                <button
+                  className="text-white hover:text-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+                  aria-label="Notifications"
+                >
+                  <FaBell className="text-2xl" />
                 </button>
 
-                <div className="flex items-center gap-1 text-white">
-                  <FaUserCircle className="text-2xl" />
-                  <span className="font-medium">{user?.name}</span>
+                <div className="flex items-center gap-2 text-white select-none">
+                  <FaUserCircle className="text-3xl" />
+                  <span className="font-semibold text-lg truncate max-w-xs">
+                    {user?.name || "User"}
+                  </span>
                 </div>
 
                 <button
-                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 h-10 rounded-md text-sm font-semibold flex items-center gap-1"
-                  onClick={() => handleLogout()}
+                  className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-6 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+                  onClick={handleLogout}
+                  aria-label="Logout"
                 >
                   <FaSignOutAlt />
                   Logout
@@ -56,8 +64,9 @@ const Navbar = () => {
               </>
             ) : (
               <button
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2 h-10 rounded-md text-sm font-semibold flex items-center gap-1"
+                className="bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white px-6 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 onClick={() => navigate("/login")}
+                aria-label="Login"
               >
                 Login
               </button>

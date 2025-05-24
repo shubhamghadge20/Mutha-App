@@ -41,6 +41,13 @@ const compareWithDatabase = async (xmlElements, selectedProductName) => {
     .filter(Boolean);
 };
 
+const comparisonCache = {
+  lastComparedFile: null,
+  lastModifiedTime: null,
+  lastSelectedProduct: null,
+  lastComparisonResult: null,
+};
+
 const handleXmlComparison = async (selectedProductName) => {
   const folder = path.resolve(process.env.XML_FOLDER_PATH || 'C:/Users/SHUBHAM/Downloads/check');
   const latestFile = getLatestXmlFile(folder);
@@ -52,6 +59,17 @@ const handleXmlComparison = async (selectedProductName) => {
       selectedProduct: selectedProductName,
       date: new Date().toISOString(),
     };
+  }
+
+  const stats = fs.statSync(latestFile);
+  const lastModifiedTime = stats.mtimeMs;
+
+  if (
+    comparisonCache.lastComparedFile === latestFile &&
+    comparisonCache.lastModifiedTime === lastModifiedTime &&
+    comparisonCache.lastSelectedProduct === selectedProductName
+  ) {
+    return comparisonCache.lastComparisonResult;
   }
 
   const parsed = await parseXml(latestFile);
@@ -66,6 +84,14 @@ const handleXmlComparison = async (selectedProductName) => {
   const comparisonResults = await compareWithDatabase(reportedElements, selectedProductName);
   const comparisonDate = new Date().toISOString();
 
+  const resultToReturn = {
+    latestFile: path.basename(latestFile),
+    selectedProduct: selectedProductName,
+    sampleName,
+    comparisonResults,
+    date: comparisonDate,
+  };
+
   await XmlComparison.create({
     latestFile: path.basename(latestFile),
     selectedProduct: selectedProductName,
@@ -74,13 +100,12 @@ const handleXmlComparison = async (selectedProductName) => {
     date: comparisonDate,
   });
 
-  return {
-    latestFile: path.basename(latestFile),
-    selectedProduct: selectedProductName,
-    sampleName,
-    comparisonResults,
-    date: comparisonDate,
-  };
+  comparisonCache.lastComparedFile = latestFile;
+  comparisonCache.lastModifiedTime = lastModifiedTime;
+  comparisonCache.lastSelectedProduct = selectedProductName;
+  comparisonCache.lastComparisonResult = resultToReturn;
+
+  return resultToReturn;
 };
 
 module.exports = {
