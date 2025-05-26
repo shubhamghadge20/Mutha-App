@@ -23,6 +23,10 @@ const envVarsSchema = Joi.object()
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
+    MQTT_BROKER: Joi.string().required(),
+    MQTT_PORT: Joi.number().required(),
+    MQTT_PUB_TOPIC: Joi.string().required(),
+    MQTT_SUB_TOPIC: Joi.string().required(),
   })
   .unknown();
 
@@ -60,5 +64,11 @@ module.exports = {
       },
     },
     from: envVars.EMAIL_FROM,
+  },
+  mqtt: {
+    mqttBroker: envVars.MQTT_BROKER,
+    mqttPort: envVars.MQTT_PORT,
+    mqttPubTopic: envVars.MQTT_PUB_TOPIC,
+    mqttSubTopic: envVars.MQTT_SUB_TOPIC,
   },
 };

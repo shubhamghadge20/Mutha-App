@@ -14,6 +14,9 @@ const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 
+const { mqttService } = require('./services');
+mqttService.mqttConnect();
+
 const app = express();
 
 if (config.env !== 'test') {

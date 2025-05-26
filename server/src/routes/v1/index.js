@@ -7,6 +7,7 @@ const docsRoute = require('./docs.route');
 const productRoute = require('./product.route');
 const xmlRoute = require('./xml.route');
 const xmlHistoryRoute = require('./xmlhistory.route');
+const mqttRoute = require('./mqtt.route');
 
 const router = express.Router();
 
@@ -30,6 +31,10 @@ const defaultRoutes = [
   {
     path: '/history',
     route: xmlHistoryRoute,
+  },
+  {
+    path: '/mqtt',
+    route: mqttRoute,
   },
 ];
 
