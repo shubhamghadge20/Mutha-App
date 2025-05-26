@@ -1,9 +1,23 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { XmlComparisonResponse } from "@/types/xmlComparison";
-import { fetchXmlComparison } from "./xmlAPI";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface XmlItem {
+  itemName: string;
+  resultValue: number;
+  lowertolerance: number;
+  uppertolerance: number;
+  inTolerance: boolean;
+}
+
+interface XmlData {
+  latestFile: string | null;
+  selectedProduct: string;
+  sampleName: string;
+  comparisonResults: XmlItem[];
+  date: string;
+}
 
 interface XmlState {
-  data: XmlComparisonResponse | null;
+  data: XmlData | null;
   loading: boolean;
   error: string | null;
 }
@@ -14,36 +28,24 @@ const initialState: XmlState = {
   error: null,
 };
 
-export const fetchXmlComparisonThunk = createAsyncThunk(
-  "xml/fetchComparison",
-  async (product: string, { rejectWithValue }) => {
-    try {
-      return await fetchXmlComparison(product);
-    } catch (err: any) {
-      return rejectWithValue(err.message || "Error fetching XML comparison");
-    }
-  }
-);
-
 const xmlSlice = createSlice({
   name: "xml",
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchXmlComparisonThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchXmlComparisonThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.data = action.payload;
-      })
-      .addCase(fetchXmlComparisonThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
+  reducers: {
+    setXmlData(state, action: PayloadAction<XmlData>) {
+      state.data = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
+    setLoading(state, action: PayloadAction<boolean>) {
+      state.loading = action.payload;
+    },
+    setError(state, action: PayloadAction<string | null>) {
+      state.error = action.payload;
+      state.loading = false;
+    },
   },
 });
 
+export const { setXmlData, setLoading, setError } = xmlSlice.actions;
 export default xmlSlice.reducer;

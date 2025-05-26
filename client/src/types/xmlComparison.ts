@@ -21,3 +21,19 @@ export interface XmlComparisonHistoryItem {
   date: string;
   comparisonResults: XmlComparisonItem[];
 }
+
+export interface XmlItem {
+  itemName: string;
+  resultValue: number;
+  lowertolerance: number;
+  uppertolerance: number;
+  inTolerance: boolean;
+}
+
+export interface XmlData {
+  latestFile: string | null;
+  selectedProduct: string;
+  sampleName: string;
+  comparisonResults: XmlItem[];
+  date: string;
+}

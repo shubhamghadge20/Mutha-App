@@ -1,17 +1,31 @@
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
-import { fetchXmlComparisonThunk } from "@/features/xml/xmlSlice";
-import { lockFurnaceThunk, unlockFurnaceThunk } from "@/features/mqtt";
-import { getProducts } from "@/features/product/productAPI";
+import socket from "@/services/socket";
 import { Product } from "@/types";
+import { getProducts } from "@/features/product/productAPI";
 
 const XmlMaster = () => {
-  const dispatch = useAppDispatch();
-  const { data, loading, error } = useAppSelector((state) => state.xml);
-
   const [selectedProduct, setSelectedProduct] = useState("");
   const [productList, setProductList] = useState<Product[]>([]);
+  const [comparisonData, setComparisonData] = useState<any>(null);
   const [lockStatus, setLockStatus] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onUpdate = (data: any) => {
+    setComparisonData(data);
+    const isLocked = data?.comparisonResults?.some(
+      (item: any) => !item.inTolerance
+    );
+    setLockStatus(isLocked);
+    setLoading(false);
+    setError(null);
+  };
+
+  const onError = (err: any) => {
+    console.error("Comparison error:", err);
+    setError(err.message || "Unknown error");
+    setLoading(false);
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -19,54 +33,68 @@ const XmlMaster = () => {
         const res = await getProducts();
         if (Array.isArray(res.results)) {
           setProductList(res.results);
-
-          const savedProduct = localStorage.getItem("selectedProduct");
-          const initialProduct =
-            savedProduct &&
-            res.results.some((p: Product) => p.name === savedProduct)
-              ? savedProduct
+          const saved = localStorage.getItem("selectedProduct");
+          const initial =
+            saved && res.results.some((p: Product) => p.name === saved)
+              ? saved
               : res.results[0]?.name;
-
-          setSelectedProduct(initialProduct || "");
+          setSelectedProduct(initial || "");
         }
-      } catch (err) {
-        console.error("Failed to load products", err);
+      } catch {
+        setError("Failed to load products");
       }
     };
+
     fetchProducts();
   }, []);
 
   useEffect(() => {
-    if (selectedProduct) {
-      dispatch(fetchXmlComparisonThunk(selectedProduct));
+    if (!socket.connected) socket.connect();
+
+    const handleConnect = () => {
+      console.log("Socket connected:", socket.id);
+      if (selectedProduct) {
+        socket.emit("startComparison", selectedProduct);
+        setLoading(true);
+      }
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("comparisonUpdate", onUpdate);
+    socket.on("comparisonError", onError);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("comparisonUpdate", onUpdate);
+      socket.off("comparisonError", onError);
+      if (process.env.NODE_ENV === "production") {
+        socket.disconnect();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedProduct && socket.connected) {
       localStorage.setItem("selectedProduct", selectedProduct);
+      setComparisonData(null);
+      socket.emit("startComparison", selectedProduct);
+      setLoading(true);
     }
-  }, [selectedProduct, dispatch]);
+  }, [selectedProduct]);
 
   const handleRefresh = () => {
-    if (selectedProduct) {
-      dispatch(fetchXmlComparisonThunk(selectedProduct));
+    if (selectedProduct && socket.connected) {
+      socket.emit("startComparison", selectedProduct);
+      setLoading(true);
     }
   };
 
-  const dateObj = data?.date ? new Date(data.date) : null;
-  const formattedDate = dateObj?.toLocaleDateString();
-  const formattedTime = dateObj?.toLocaleTimeString();
-
-  useEffect(() => {
-    const status = data?.comparisonResults?.some((item) => !item.inTolerance);
-    setLockStatus(status || false);
-  }, [data]);
-
-  useEffect(() => {
-    if (lockStatus) {
-      console.log("lock command trigger");
-      dispatch(lockFurnaceThunk());
-    } else {
-      console.log("unlock command trigger");
-      dispatch(unlockFurnaceThunk());
-    }
-  }, [lockStatus, setLockStatus, selectedProduct, dispatch]);
+  const formattedDate = comparisonData?.date
+    ? new Date(comparisonData.date).toLocaleDateString()
+    : "";
+  const formattedTime = comparisonData?.date
+    ? new Date(comparisonData.date).toLocaleTimeString()
+    : "";
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-xl space-y-6">
@@ -84,7 +112,7 @@ const XmlMaster = () => {
             onChange={(e) => setSelectedProduct(e.target.value)}
             className="w-full px-4 py-2 rounded-xl border border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {productList.map((product) => (
+            {productList.map((product: Product) => (
               <option key={product.id} value={product.name}>
                 {product.name}
               </option>
@@ -96,13 +124,14 @@ const XmlMaster = () => {
           <button
             onClick={handleRefresh}
             className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            disabled={loading}
           >
             Refresh File
           </button>
           <button
             onClick={() => {
-              dispatch(unlockFurnaceThunk());
               console.log("Manual unlock triggered");
+              setLockStatus(false);
             }}
             className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
           >
@@ -114,12 +143,12 @@ const XmlMaster = () => {
       {loading && <p className="text-blue-600 font-medium">Loading...</p>}
       {error && <p className="text-red-600 font-medium">Error: {error}</p>}
 
-      {data && (
+      {comparisonData && (
         <div className="bg-white border border-gray-700 rounded-xl p-6 space-y-3 text-stone-700 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <p>
               <span className="font-semibold">Sample Name:</span>{" "}
-              {data.sampleName}
+              {comparisonData.sampleName}
             </p>
             <p>
               <span className="font-semibold">Date:</span> {formattedDate}
@@ -131,10 +160,10 @@ const XmlMaster = () => {
               <span className="font-semibold">Overall Status:</span>{" "}
               <span
                 className={`font-bold ${
-                  lockStatus === false ? "text-green-600" : "text-red-600"
+                  !lockStatus ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {lockStatus === false ? "Ok" : "Not Ok"}
+                {!lockStatus ? "OK" : "Not OK"}
               </span>
             </p>
           </div>
