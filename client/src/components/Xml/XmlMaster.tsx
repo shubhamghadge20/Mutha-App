@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { fetchXmlComparisonThunk } from "@/features/xml/xmlSlice";
+import { lockFurnaceThunk, unlockFurnaceThunk } from "@/features/mqtt";
 import { getProducts } from "@/features/product/productAPI";
 import { Product } from "@/types";
 
@@ -10,6 +11,7 @@ const XmlMaster = () => {
 
   const [selectedProduct, setSelectedProduct] = useState("");
   const [productList, setProductList] = useState<Product[]>([]);
+  const [lockStatus, setLockStatus] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -51,11 +53,20 @@ const XmlMaster = () => {
   const formattedDate = dateObj?.toLocaleDateString();
   const formattedTime = dateObj?.toLocaleTimeString();
 
-  const overallStatus = data?.comparisonResults?.some(
-    (item) => !item.inTolerance
-  )
-    ? "Not OK"
-    : "OK";
+  useEffect(() => {
+    const status = data?.comparisonResults?.some((item) => !item.inTolerance);
+    setLockStatus(status || false);
+  }, [data]);
+
+  useEffect(() => {
+    if (lockStatus) {
+      console.log("lock command trigger");
+      dispatch(lockFurnaceThunk());
+    } else {
+      console.log("unlock command trigger");
+      dispatch(unlockFurnaceThunk());
+    }
+  }, [lockStatus, setLockStatus, selectedProduct, dispatch]);
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-xl space-y-6">
@@ -81,12 +92,23 @@ const XmlMaster = () => {
           </select>
         </div>
 
-        <button
-          onClick={handleRefresh}
-          className="mt-2 sm:mt-6 px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
-        >
-          Refresh File
-        </button>
+        <div className="flex gap-4 items-center w-full sm:w-auto sm:ml-auto mt-2 sm:mt-6">
+          <button
+            onClick={handleRefresh}
+            className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+          >
+            Refresh File
+          </button>
+          <button
+            onClick={() => {
+              dispatch(unlockFurnaceThunk());
+              console.log("Manual unlock triggered");
+            }}
+            className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+          >
+            Unlock
+          </button>
+        </div>
       </div>
 
       {loading && <p className="text-blue-600 font-medium">Loading...</p>}
@@ -96,11 +118,7 @@ const XmlMaster = () => {
         <div className="bg-white border border-gray-700 rounded-xl p-6 space-y-3 text-stone-700 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <p>
-              <span className="font-semibold">Latest File:</span>{" "}
-              {data.latestFile}
-            </p>
-            <p>
-              <span className="font-semibold">Sample ID:</span>{" "}
+              <span className="font-semibold">Sample Name:</span>{" "}
               {data.sampleName}
             </p>
             <p>
@@ -113,10 +131,10 @@ const XmlMaster = () => {
               <span className="font-semibold">Overall Status:</span>{" "}
               <span
                 className={`font-bold ${
-                  overallStatus === "OK" ? "text-green-600" : "text-red-600"
+                  lockStatus === false ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {overallStatus}
+                {lockStatus === false ? "Ok" : "Not Ok"}
               </span>
             </p>
           </div>

@@ -29,8 +29,8 @@ export const fetchXmlHistoryThunk = createAsyncThunk<
 });
 
 export const deleteXmlHistoryThunk = createAsyncThunk<
-  string, // return type = deleted id
-  string, // argument type = id
+  string,
+  string,
   { rejectValue: string }
 >("xmlHistory/delete", async (id, { rejectWithValue }) => {
   try {

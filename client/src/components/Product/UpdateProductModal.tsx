@@ -1,5 +1,6 @@
 import { UpdateProductInterface, ProductItem } from "@/types";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 interface UpdateProductModalProps {
   open: boolean;
@@ -63,9 +64,14 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
           !isNaN(item.uppertolerance) &&
           !isNaN(item.lowertolerance)
         ) {
-          // Accept if both zero
           if (!(item.uppertolerance === 0 && item.lowertolerance === 0)) {
             if (item.uppertolerance <= item.lowertolerance) {
+              toast.error(
+                `Item ${
+                  index + 1
+                }: Upper tolerance must be greater than lower tolerance`,
+                { position: "top-right", autoClose: 5000 }
+              );
               newErrors[`itemTolerance_${index}`] = `Item ${
                 index + 1
               }: Upper tolerance must be greater than lower tolerance`;
@@ -117,7 +123,6 @@ const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
           ...prev.items,
           {
             name: "",
-            value: 0,
             uppertolerance: 0,
             lowertolerance: 0,
           },

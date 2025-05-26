@@ -38,6 +38,7 @@ export const createProductThunk = createAsyncThunk(
   async (formData: CreateProductInterface, { rejectWithValue }) => {
     try {
       const data = await createProduct(formData);
+
       return data;
     } catch (error: any) {
       return rejectWithValue(

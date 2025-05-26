@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 
 import { CreateProductInterface, ProductItem } from "@/types";
 import { useAppDispatch } from "@/hooks/reduxHooks";
@@ -65,7 +64,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   if (!open) return null;
 
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState<CreateProductInterface>(initialData);
   const [errors, setErrors] = useState<Partial<ErrorsInterface>>({});
 
@@ -76,34 +74,55 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       newErrors.name = "Product name is required";
     }
 
-    formData.items.forEach((item, index) => {
-      const upper = item.uppertolerance;
-      const lower = item.lowertolerance;
+    if (!formData.items || formData.items.length === 0) {
+      newErrors.items = "At least one item is required";
+    } else {
+      formData.items.forEach((item, index) => {
+        const upper = item.uppertolerance;
+        const lower = item.lowertolerance;
+        const itemName = item.name;
 
-      if (upper === undefined || isNaN(upper)) {
-        newErrors[
-          `itemUpper_${index}`
-        ] = `Upper tolerance is required for ${item.name}`;
-      }
-
-      if (lower === undefined || isNaN(lower)) {
-        newErrors[
-          `itemLower_${index}`
-        ] = `Lower tolerance is required for ${item.name}`;
-      }
-
-      if (typeof upper === "number" && typeof lower === "number") {
-        if (upper === 0 && lower === 0) {
-        } else if (upper <= lower) {
-          newErrors[
-            `itemUpper_${index}`
-          ] = `Upper tolerance must be greater than lower tolerance for ${item.name}`;
-          newErrors[
-            `itemLower_${index}`
-          ] = `Lower tolerance must be less than upper tolerance for ${item.name}`;
+        // Skip name validation for fixed items
+        if (
+          !itemName ||
+          (!fixedItemNames.includes(itemName) && !itemName.trim())
+        ) {
+          newErrors[`itemName_${index}`] = `Item ${
+            index + 1
+          }: Name is required`;
         }
-      }
-    });
+
+        if (upper === undefined || isNaN(upper)) {
+          newErrors[`itemUpper_${index}`] = `Item ${
+            index + 1
+          }: Upper tolerance is required`;
+        }
+
+        if (lower === undefined || isNaN(lower)) {
+          newErrors[`itemLower_${index}`] = `Item ${
+            index + 1
+          }: Lower tolerance is required`;
+        }
+
+        if (
+          typeof upper === "number" &&
+          typeof lower === "number" &&
+          !(upper === 0 && lower === 0)
+        ) {
+          if (upper <= lower) {
+            toast.error(
+              `Item ${
+                index + 1
+              }: Upper tolerance must be greater than lower tolerance`,
+              { position: "top-right", autoClose: 4000 }
+            );
+            newErrors[`itemTolerance_${index}`] = `Item ${
+              index + 1
+            }: Upper > Lower required`;
+          }
+        }
+      });
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -149,7 +168,6 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     try {
       await dispatch(createProductThunk(formData)).unwrap();
       onClose();
-      navigate("/product");
     } catch (error: any) {
       toast.error(error?.message || "Product creation failed");
     }
@@ -220,6 +238,11 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                         }}
                         className="w-full px-4 py-2 border rounded-xl border-stone-300 bg-stone-50 text-stone-800"
                       />
+                    )}
+                    {errors[`itemName_${index}`] && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors[`itemName_${index}`]}
+                      </p>
                     )}
                   </div>
 

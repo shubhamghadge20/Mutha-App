@@ -8,6 +8,7 @@ import {
 import type { RootState } from "@/store";
 import XmlComparisonDetails from "./XmlComparisonDetails";
 import { XmlComparisonHistoryItem } from "@/types/xmlComparison";
+import AlertModal from "../@/ui/AlertModal";
 
 const XmlHistoryMaster = () => {
   const dispatch = useAppDispatch();
@@ -44,7 +45,9 @@ const XmlHistoryMaster = () => {
     <div className="min-h-screen bg-white text-gray-800 p-6">
       <div className="max-w-6xl mx-auto relative">
         <div className="bg-white p-6 rounded-lg shadow transition duration-300">
-          <h2 className="text-2xl font-bold mb-6">XML Comparison History</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">XML Comparison History</h2>
+          </div>
 
           {error && (
             <div className="mb-4 text-red-600 font-semibold">{error}</div>
@@ -112,32 +115,12 @@ const XmlHistoryMaster = () => {
 
         {selected && <XmlComparisonDetails />}
 
-        {deleteId && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-            <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-md">
-              <h3 className="text-xl font-bold mb-4 text-center">
-                Confirm Deletion
-              </h3>
-              <p className="text-center text-gray-700 mb-6">
-                Are you sure you want to delete this record?
-              </p>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={handleConfirm}
-                  className="bg-red-600 text-white px-5 py-2 rounded-md hover:bg-red-700 transition"
-                >
-                  Yes, Delete
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="bg-gray-300 text-gray-800 px-5 py-2 rounded-md hover:bg-gray-400 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <AlertModal
+          open={!!deleteId}
+          message="Are you sure you want to delete this record?"
+          onClose={handleCancel}
+          onConfirm={handleConfirm}
+        />
       </div>
     </div>
   );

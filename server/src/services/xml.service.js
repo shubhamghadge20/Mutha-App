@@ -16,7 +16,7 @@ const extractReportedElements = (elements = []) =>
     .map((e) => {
       const name = e?.$?.ElementName;
       const reportedResult = e.ElementResult.find((r) => r.$?.StatType === 'Reported');
-      const value = parseFloat(reportedResult?.ResultValue?.[0]);
+      const value = parseFloat(parseFloat(reportedResult?.ResultValue?.[0]).toFixed(5));
       return { itemName: name, resultValue: value };
     });
 
