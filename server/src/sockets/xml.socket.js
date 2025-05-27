@@ -37,29 +37,37 @@ const registerXmlSocket = (io) => {
 
 const startFileWatcher = () => {
   const folder = path.resolve(process.env.XML_FOLDER_PATH || 'C:/Users/SHUBHAM/Downloads/check');
+  console.log('📁 Watching XML folder:', folder);
 
   const watcher = chokidar.watch(folder, {
     persistent: true,
-    ignoreInitial: true,
-    depth: 0,
+    ignoreInitial: false,
     awaitWriteFinish: {
-      stabilityThreshold: 500,
+      stabilityThreshold: 1000,
       pollInterval: 100,
     },
-    ignored: (file) => !file.endsWith('.xml'),
   });
 
   watcher
-    .on('add', (filePath) => {
-      console.log(`New XML file added: ${filePath}`);
-      broadcastComparisonToClients();
+    .on('add', async (filePath) => {
+      if (filePath.toLowerCase().endsWith('.xml')) {
+        console.log(`🆕 XML file added: ${filePath}`);
+        await broadcastComparisonToClients();
+      } else {
+        console.log(`❌ Ignored non-XML file: ${filePath}`);
+      }
     })
-    .on('change', (filePath) => {
-      console.log(`XML file changed: ${filePath}`);
-      broadcastComparisonToClients();
+    .on('change', async (filePath) => {
+      if (filePath.toLowerCase().endsWith('.xml')) {
+        console.log(`✏️ XML file changed: ${filePath}`);
+        await broadcastComparisonToClients();
+      }
     })
     .on('error', (error) => {
-      console.error('Watcher error:', error);
+      console.error('❌ Watcher error:', error);
+    })
+    .on('ready', () => {
+      console.log('✅ XML watcher is ready and watching for changes...');
     });
 };
 
@@ -78,4 +86,5 @@ const broadcastComparisonToClients = async () => {
 
 module.exports = {
   registerXmlSocket,
+  startFileWatcher,
 };

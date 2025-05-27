@@ -6,6 +6,7 @@ import { RootState } from "@/store";
 import { useAppSelector } from "@/hooks/reduxHooks";
 import { useAuth } from "@/hooks/auth/useAuth";
 import Sidebar from "@components/Sidebar";
+import machineWiseLogo from "@/assets/logo1.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -27,13 +28,16 @@ const Navbar = () => {
             <button
               onClick={toggleSidebar}
               aria-label="Toggle sidebar"
-              className="text-white hover:text-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+              className="text-white hover:text-yellow-300 rounded"
             >
               <FaBars className="text-3xl" />
             </button>
-            <h1 className="text-2xl font-extrabold text-white tracking-wide select-none">
-              MachineWise
-            </h1>
+
+            <img
+              src={machineWiseLogo}
+              alt="MachineWise Logo"
+              className="h-10 w-auto select-none"
+            />
           </div>
 
           <div className="flex items-center gap-8">
@@ -64,7 +68,7 @@ const Navbar = () => {
               </>
             ) : (
               <button
-                className="bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white px-6 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-stone-800 px-6 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
                 onClick={() => navigate("/login")}
                 aria-label="Login"
               >

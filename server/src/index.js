@@ -16,6 +16,8 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
     cors: { origin: '*' }, // Change origin for production
   });
 
+  app.set('io', io);
+
   registerXmlSocket(io);
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);

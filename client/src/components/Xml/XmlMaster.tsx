@@ -3,8 +3,13 @@ import socket from "@/services/socket";
 import { Product } from "@/types";
 import { getProducts } from "@/features/product/productAPI";
 
+import { useAppDispatch } from "@/hooks/reduxHooks";
+import { lockFurnaceThunk, unlockFurnaceThunk } from "@/features/mqtt";
+
 const XmlMaster = () => {
-  const [selectedProduct, setSelectedProduct] = useState("");
+  const dispatch = useAppDispatch();
+
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [productList, setProductList] = useState<Product[]>([]);
   const [comparisonData, setComparisonData] = useState<any>(null);
   const [lockStatus, setLockStatus] = useState(false);
@@ -12,11 +17,14 @@ const XmlMaster = () => {
   const [error, setError] = useState<string | null>(null);
 
   const onUpdate = (data: any) => {
+    console.log(data);
     setComparisonData(data);
+
     const isLocked = data?.comparisonResults?.some(
       (item: any) => !item.inTolerance
     );
     setLockStatus(isLocked);
+
     setLoading(false);
     setError(null);
   };
@@ -37,8 +45,8 @@ const XmlMaster = () => {
           const initial =
             saved && res.results.some((p: Product) => p.name === saved)
               ? saved
-              : res.results[0]?.name;
-          setSelectedProduct(initial || "");
+              : res.results[0]?.name || "";
+          setSelectedProduct(initial);
         }
       } catch {
         setError("Failed to load products");
@@ -89,6 +97,16 @@ const XmlMaster = () => {
     }
   };
 
+  useEffect(() => {
+    if (lockStatus) {
+      console.log("Lock command triggered");
+      dispatch(lockFurnaceThunk());
+    } else {
+      console.log("Unlock command triggered");
+      dispatch(unlockFurnaceThunk());
+    }
+  }, [lockStatus, dispatch]);
+
   const formattedDate = comparisonData?.date
     ? new Date(comparisonData.date).toLocaleDateString()
     : "";
@@ -128,15 +146,19 @@ const XmlMaster = () => {
           >
             Refresh File
           </button>
-          <button
-            onClick={() => {
-              console.log("Manual unlock triggered");
-              setLockStatus(false);
-            }}
-            className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
-          >
-            Unlock
-          </button>
+
+          {lockStatus && (
+            <button
+              onClick={() => {
+                console.log("Manual unlock triggered");
+                setLockStatus(false);
+                dispatch(unlockFurnaceThunk());
+              }}
+              className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+            >
+              Unlock
+            </button>
+          )}
         </div>
       </div>
 
