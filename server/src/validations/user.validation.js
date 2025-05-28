@@ -1,6 +1,16 @@
 const Joi = require('joi');
 const { password, objectId } = require('./custom.validation');
 
+const createAdmin = {
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().custom(password),
+    name: Joi.string().required(),
+    role: Joi.string().valid('admin').default('admin'),
+    mobile: Joi.string().required(),
+  }),
+};
+
 const createUser = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
@@ -49,6 +59,7 @@ const deleteUser = {
 };
 
 module.exports = {
+  createAdmin,
   createUser,
   getUsers,
   getUser,

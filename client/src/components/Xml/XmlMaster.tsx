@@ -17,7 +17,6 @@ const XmlMaster = () => {
   const [error, setError] = useState<string | null>(null);
 
   const onUpdate = (data: any) => {
-    console.log(data);
     setComparisonData(data);
 
     const isLocked = data?.comparisonResults?.some(

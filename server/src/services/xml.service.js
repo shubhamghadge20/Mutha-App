@@ -49,8 +49,14 @@ const comparisonCache = {
 };
 
 const handleXmlComparison = async (selectedProductName) => {
-  const folder = path.resolve(process.env.XML_FOLDER_PATH || 'C:/Users/SHUBHAM/Downloads/check');
+  const folderPath = process.env.XML_FOLDER_PATH;
+  if (!folderPath) {
+    throw new Error('XML_FOLDER_PATH environment variable is not set.');
+  }
+
+  const folder = path.resolve(folderPath);
   const latestFile = getLatestXmlFile(folder);
+
   if (!latestFile) {
     return {
       latestFile: null,

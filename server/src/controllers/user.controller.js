@@ -4,6 +4,17 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
 
+const createAdmin = async (req, res) => {
+  try {
+    const user = await userService.createAdmin();
+    console.info('Default admin created successfully');
+    res.status(httpStatus.CREATED).json({ message: 'Admin created', data: user });
+  } catch (error) {
+    console.error('Failed to create admin:', error.message);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to create default admin' });
+  }
+};
+
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
   res.status(httpStatus.CREATED).send(user);
@@ -35,6 +46,7 @@ const deleteUser = catchAsync(async (req, res) => {
 });
 
 module.exports = {
+  createAdmin,
   createUser,
   getUsers,
   getUser,

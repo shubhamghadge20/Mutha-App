@@ -11,9 +11,12 @@ const Sidebar = ({
   const navigate = useNavigate();
   const location = useLocation();
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userRole = user?.role;
+
   const navItems = [
     { id: 1, item: "Dashboard", path: "/" },
-    { id: 2, item: "Users", path: "/users" },
+    { id: 2, item: "Users", path: "/users", role: "admin" },
     { id: 3, item: "Products", path: "/product" },
     { id: 4, item: "Data History", path: "/history" },
   ];
@@ -34,22 +37,24 @@ const Sidebar = ({
         </button>
       </div>
       <ul className="p-4 space-y-2">
-        {navItems.map((entry) => (
-          <li
-            key={entry.id}
-            onClick={() => {
-              navigate(entry.path);
-              onClose();
-            }}
-            className={`py-2 px-4 rounded-lg cursor-pointer transition-colors ${
-              location.pathname === entry.path
-                ? "bg-blue-200 text-black font-semibold"
-                : "hover:bg-blue-100"
-            }`}
-          >
-            {entry.item}
-          </li>
-        ))}
+        {navItems
+          .filter((entry) => !entry.role || entry.role === userRole)
+          .map((entry) => (
+            <li
+              key={entry.id}
+              onClick={() => {
+                navigate(entry.path);
+                onClose();
+              }}
+              className={`py-2 px-4 rounded-lg cursor-pointer transition-colors ${
+                location.pathname === entry.path
+                  ? "bg-blue-200 text-black font-semibold"
+                  : "hover:bg-blue-100"
+              }`}
+            >
+              {entry.item}
+            </li>
+          ))}
       </ul>
     </div>
   );

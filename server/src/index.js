@@ -13,7 +13,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   const httpServer = http.createServer(app);
 
   const io = new Server(httpServer, {
-    cors: { origin: '*' }, // Change origin for production
+    cors: { origin: '*' },
   });
 
   app.set('io', io);
@@ -21,7 +21,6 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   registerXmlSocket(io);
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
-    // ...
   });
 
   httpServer.listen(config.port, () => {

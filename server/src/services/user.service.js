@@ -2,6 +2,24 @@ const httpStatus = require('http-status');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 
+const createAdmin = async () => {
+  try {
+    const hashedPassword = await bcrypt.hash('Admin@123', 10);
+    const userData = {
+      name: 'MachineWise Admin',
+      email: 'admin@machinewise.in',
+      mobile: 1234567890,
+      password: hashedPassword,
+      role: 'admin',
+    };
+    const user = new User(userData);
+    await user.save();
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
 /**
  * Create a user
  * @param {Object} userBody
@@ -80,6 +98,7 @@ const deleteUserById = async (userId) => {
 };
 
 module.exports = {
+  createAdmin,
   createUser,
   queryUsers,
   getUserById,
