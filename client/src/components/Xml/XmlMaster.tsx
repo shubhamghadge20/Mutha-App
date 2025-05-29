@@ -4,7 +4,13 @@ import { Product } from "@/types";
 import { getProducts } from "@/features/product/productAPI";
 
 import { useAppDispatch } from "@/hooks/reduxHooks";
-import { lockFurnaceThunk, unlockFurnaceThunk } from "@/features/mqtt";
+import {
+  lockFurnaceThunk,
+  unlockFurnaceThunk,
+  mqttenableThunk,
+  mqttdisableThunk,
+  mqttstatusThunk,
+} from "@/features/mqtt";
 
 const XmlMaster = () => {
   const dispatch = useAppDispatch();
@@ -14,6 +20,9 @@ const XmlMaster = () => {
   const [comparisonData, setComparisonData] = useState<any>(null);
   const [lockStatus, setLockStatus] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mqttStatus, setMqttStatus] = useState<"enabled" | "disabled">(
+    "disabled"
+  );
   const [error, setError] = useState<string | null>(null);
 
   const onUpdate = (data: any) => {
@@ -54,6 +63,19 @@ const XmlMaster = () => {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const fetchMqttStatus = async () => {
+      try {
+        const resultAction = await dispatch(mqttstatusThunk()).unwrap();
+        setMqttStatus(resultAction);
+      } catch (err) {
+        console.error("Failed to fetch MQTT status:", err);
+      }
+    };
+
+    fetchMqttStatus();
+  }, [dispatch]);
 
   useEffect(() => {
     if (!socket.connected) socket.connect();
@@ -97,14 +119,30 @@ const XmlMaster = () => {
   };
 
   useEffect(() => {
-    if (lockStatus) {
-      console.log("Lock command triggered");
-      dispatch(lockFurnaceThunk());
-    } else {
-      console.log("Unlock command triggered");
-      dispatch(unlockFurnaceThunk());
+    if (mqttStatus === "enabled") {
+      if (lockStatus) {
+        console.log("Lock command triggered");
+        dispatch(lockFurnaceThunk());
+      } else {
+        console.log("Unlock command triggered");
+        dispatch(unlockFurnaceThunk());
+      }
     }
-  }, [lockStatus, dispatch]);
+  }, [lockStatus, mqttStatus, dispatch]);
+
+  const handleToggleMqtt = async () => {
+    try {
+      if (mqttStatus === "enabled") {
+        await dispatch(mqttdisableThunk()).unwrap();
+        setMqttStatus("disabled");
+      } else {
+        await dispatch(mqttenableThunk()).unwrap();
+        setMqttStatus("enabled");
+      }
+    } catch (err) {
+      console.error("MQTT toggle failed:", err);
+    }
+  };
 
   const formattedDate = comparisonData?.date
     ? new Date(comparisonData.date).toLocaleDateString()
@@ -137,7 +175,7 @@ const XmlMaster = () => {
           </select>
         </div>
 
-        <div className="flex gap-4 items-center w-full sm:w-auto sm:ml-auto mt-2 sm:mt-6">
+        <div className="flex flex-wrap gap-4 items-center w-full sm:w-auto sm:ml-auto mt-2 sm:mt-6">
           <button
             onClick={handleRefresh}
             className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
@@ -146,7 +184,18 @@ const XmlMaster = () => {
             Refresh File
           </button>
 
-          {lockStatus && (
+          <button
+            onClick={handleToggleMqtt}
+            className={`px-5 py-2 rounded-xl font-semibold transition ${
+              mqttStatus === "enabled"
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "bg-green-600 text-white hover:bg-green-700"
+            }`}
+          >
+            {mqttStatus === "enabled" ? "Disable MQTT" : "Enable MQTT"}
+          </button>
+
+          {lockStatus && mqttStatus === "enabled" && (
             <button
               onClick={() => {
                 console.log("Manual unlock triggered");

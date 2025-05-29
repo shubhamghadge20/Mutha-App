@@ -1,6 +1,7 @@
 const mqtt = require('mqtt');
 const config = require('../config/config');
 const { info, error } = require('../config/logger');
+const { Mqtt } = require('../models/');
 
 const mqttBroker = config.mqtt.mqttBroker;
 const mqttPort = config.mqtt.mqttPort;
@@ -8,7 +9,6 @@ const mqttPubTopic = config.mqtt.mqttPubTopic;
 const mqttSubTopic = config.mqtt.mqttSubTopic;
 
 const mqttURIString = `mqtt://${mqttBroker}:${mqttPort}`;
-
 const client = mqtt.connect(mqttURIString);
 
 const mqttConnect = () => {
@@ -60,9 +60,39 @@ const unlock = async () => {
   info(`Lock command : ${mqttPubTopic} | MSG : ${relayOff}`);
 };
 
+const getMqttStatus = async () => {
+  let doc = await Mqtt.findOne();
+  if (!doc) {
+    doc = await Mqtt.create({ value: 'enabled' });
+  }
+  return doc.value;
+};
+
+const enableMqtt = async () => {
+  let doc = await Mqtt.findOne();
+  if (doc) {
+    doc.value = 'enabled';
+    await doc.save();
+  } else {
+    await Mqtt.create({ value: 'enabled' });
+  }
+};
+
+const disableMqtt = async () => {
+  let doc = await Mqtt.findOne();
+  if (doc) {
+    doc.value = 'disabled';
+    await doc.save();
+  } else {
+    await Mqtt.create({ value: 'disabled' });
+  }
+};
 module.exports = {
   mqttConnect,
   getMessage,
   lock,
   unlock,
+  getMqttStatus,
+  enableMqtt,
+  disableMqtt,
 };
