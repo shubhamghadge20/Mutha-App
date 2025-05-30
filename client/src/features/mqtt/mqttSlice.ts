@@ -15,7 +15,7 @@ const initialState: MqttState = {
   status: "idle",
   message: "",
   error: null,
-  mqttStatus: "disabled",
+  mqttStatus: "enabled",
 };
 
 export const lockFurnaceThunk = createAsyncThunk("mqtt/lock", async () => {

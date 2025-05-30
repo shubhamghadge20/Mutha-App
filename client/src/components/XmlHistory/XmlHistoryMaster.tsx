@@ -3,7 +3,9 @@ import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import {
   fetchXmlHistoryThunk,
   selectComparison,
+  clearSelected,
   deleteXmlHistoryThunk,
+  setPage,
 } from "@/features/xmlhistory/xmlhistorySlice";
 import type { RootState } from "@/store";
 import XmlComparisonDetails from "./XmlComparisonDetails";
@@ -12,15 +14,21 @@ import AlertModal from "../@/ui/AlertModal";
 
 const XmlHistoryMaster = () => {
   const dispatch = useAppDispatch();
-  const { data, loading, selected, error } = useAppSelector(
+  const { data, loading, selected, error, page, totalPages } = useAppSelector(
     (state: RootState) => state.xmlhistory
   );
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    dispatch(fetchXmlHistoryThunk());
-  }, [dispatch]);
+    dispatch(fetchXmlHistoryThunk({ page, limit: 10 }));
+  }, [dispatch, page]);
+
+  useEffect(() => {
+    if (selected && !data.find((item) => item._id === selected._id)) {
+      dispatch(clearSelected());
+    }
+  }, [data, selected, dispatch]);
 
   const confirmDelete = (id: string) => {
     setDeleteId(id);
@@ -37,8 +45,19 @@ const XmlHistoryMaster = () => {
     setDeleteId(null);
   };
 
+  const sortedData = [...data].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const onPageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== page) {
+      dispatch(setPage(newPage));
+    }
+  };
+
   if (loading) return <p className="p-4">Loading...</p>;
-  if (!data || !Array.isArray(data))
+
+  if (!data || data.length === 0)
     return <p className="p-4">No history data found.</p>;
 
   return (
@@ -50,7 +69,9 @@ const XmlHistoryMaster = () => {
           </div>
 
           {error && (
-            <div className="mb-4 text-red-600 font-semibold">{error}</div>
+            <div className="mb-4 text-red-600 font-semibold" role="alert">
+              {error}
+            </div>
           )}
 
           <div className="overflow-x-auto">
@@ -67,49 +88,132 @@ const XmlHistoryMaster = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.map((record: XmlComparisonHistoryItem, index: number) => {
-                  const dateObj = new Date(record.date);
-                  const isUnlocked = record.comparisonResults.every(
-                    (r) => r.inTolerance
-                  );
+                {sortedData.map(
+                  (record: XmlComparisonHistoryItem, index: number) => {
+                    const dateObj = new Date(record.date);
+                    const isUnlocked = record.comparisonResults.every(
+                      (r) => r.inTolerance
+                    );
 
-                  return (
-                    <tr
-                      key={record._id}
-                      className="hover:bg-gray-50 border-t text-center transition"
-                    >
-                      <td className="p-3">{index + 1}</td>
-                      <td className="p-3">{record.sampleName}</td>
-                      <td className="p-3">{dateObj.toLocaleDateString()}</td>
-                      <td className="p-3">{dateObj.toLocaleTimeString()}</td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => dispatch(selectComparison(record))}
-                          className="text-blue-600 underline hover:text-blue-800 transition"
-                        >
-                          Report
-                        </button>
-                      </td>
-                      <td
-                        className={`p-3 font-medium ${
-                          isUnlocked ? "text-green-600" : "text-red-600"
-                        }`}
+                    return (
+                      <tr
+                        key={record._id}
+                        className="hover:bg-gray-50 border-t text-center transition"
                       >
-                        {isUnlocked ? "Unlocked" : "Locked"}
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => confirmDelete(record._id)}
-                          className="text-red-600 underline hover:text-red-800 transition"
+                        <td className="p-3">{index + 1 + (page - 1) * 10}</td>
+                        <td className="p-3">{record.sampleName}</td>
+                        <td className="p-3">{dateObj.toLocaleDateString()}</td>
+                        <td className="p-3">{dateObj.toLocaleTimeString()}</td>
+                        <td className="p-3">
+                          <button
+                            aria-label={`View report for ${record.sampleName}`}
+                            onClick={() => dispatch(selectComparison(record))}
+                            className="text-blue-600 underline hover:text-blue-800 transition"
+                          >
+                            Report
+                          </button>
+                        </td>
+                        <td
+                          className={`p-3 font-medium ${
+                            isUnlocked ? "text-green-600" : "text-red-600"
+                          }`}
                         >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                          {isUnlocked ? "Unlocked" : "Locked"}
+                        </td>
+                        <td className="p-3">
+                          <button
+                            aria-label={`Delete record ${record.sampleName}`}
+                            onClick={() => confirmDelete(record._id)}
+                            className="text-red-600 underline hover:text-red-800 transition"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )}
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-6 flex justify-center items-center flex-wrap gap-2">
+            <button
+              onClick={() => onPageChange(1)}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded border ${
+                page === 1
+                  ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                  : "text-blue-600 border-blue-600 hover:bg-blue-100"
+              }`}
+            >
+              First
+            </button>
+
+            <button
+              onClick={() => onPageChange(page - 1)}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded border ${
+                page === 1
+                  ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                  : "text-blue-600 border-blue-600 hover:bg-blue-100"
+              }`}
+            >
+              Prev
+            </button>
+
+            {(() => {
+              const pageButtons = [];
+              const maxButtons = 5;
+              let start = Math.max(1, page - Math.floor(maxButtons / 2));
+              let end = Math.min(totalPages, start + maxButtons - 1);
+
+              if (end - start < maxButtons - 1) {
+                start = Math.max(1, end - maxButtons + 1);
+              }
+
+              for (let p = start; p <= end; p++) {
+                pageButtons.push(
+                  <button
+                    key={p}
+                    onClick={() => onPageChange(p)}
+                    className={`px-3 py-1 rounded border ${
+                      p === page
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "text-blue-600 border-blue-600 hover:bg-blue-100"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              }
+
+              return pageButtons;
+            })()}
+
+            <button
+              onClick={() => onPageChange(page + 1)}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded border ${
+                page === totalPages
+                  ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                  : "text-blue-600 border-blue-600 hover:bg-blue-100"
+              }`}
+            >
+              Next
+            </button>
+
+            <button
+              onClick={() => onPageChange(totalPages)}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded border ${
+                page === totalPages
+                  ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                  : "text-blue-600 border-blue-600 hover:bg-blue-100"
+              }`}
+            >
+              Last
+            </button>
           </div>
         </div>
 

@@ -9,7 +9,6 @@ import {
   unlockFurnaceThunk,
   mqttenableThunk,
   mqttdisableThunk,
-  mqttstatusThunk,
 } from "@/features/mqtt";
 
 const XmlMaster = () => {
@@ -21,7 +20,7 @@ const XmlMaster = () => {
   const [lockStatus, setLockStatus] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mqttStatus, setMqttStatus] = useState<"enabled" | "disabled">(
-    "disabled"
+    "enabled"
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -65,16 +64,16 @@ const XmlMaster = () => {
   }, []);
 
   useEffect(() => {
-    const fetchMqttStatus = async () => {
+    const enableMqttByDefault = async () => {
       try {
-        const resultAction = await dispatch(mqttstatusThunk()).unwrap();
-        setMqttStatus(resultAction);
+        await dispatch(mqttenableThunk()).unwrap();
+        setMqttStatus("enabled");
       } catch (err) {
-        console.error("Failed to fetch MQTT status:", err);
+        console.error("Failed to enable MQTT on start:", err);
       }
     };
 
-    fetchMqttStatus();
+    enableMqttByDefault();
   }, [dispatch]);
 
   useEffect(() => {
@@ -128,6 +127,7 @@ const XmlMaster = () => {
         dispatch(unlockFurnaceThunk());
       }
     }
+    console.log("MQTT : ", mqttStatus, "   Lock : ", lockStatus);
   }, [lockStatus, mqttStatus, dispatch]);
 
   const handleToggleMqtt = async () => {
@@ -178,7 +178,7 @@ const XmlMaster = () => {
         <div className="flex flex-wrap gap-4 items-center w-full sm:w-auto sm:ml-auto mt-2 sm:mt-6">
           <button
             onClick={handleRefresh}
-            className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            className="cursor-pointer px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
             disabled={loading}
           >
             Refresh File
@@ -186,7 +186,7 @@ const XmlMaster = () => {
 
           <button
             onClick={handleToggleMqtt}
-            className={`px-5 py-2 rounded-xl font-semibold transition ${
+            className={`cursor-pointer px-5 py-2 rounded-xl font-semibold transition ${
               mqttStatus === "enabled"
                 ? "bg-red-600 text-white hover:bg-red-700"
                 : "bg-green-600 text-white hover:bg-green-700"
@@ -202,7 +202,7 @@ const XmlMaster = () => {
                 setLockStatus(false);
                 dispatch(unlockFurnaceThunk());
               }}
-              className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+              className="cursor-pointer px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
             >
               Unlock
             </button>

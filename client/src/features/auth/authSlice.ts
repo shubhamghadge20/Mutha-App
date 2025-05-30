@@ -66,6 +66,8 @@ export const logoutThunk = createAsyncThunk(
 
     try {
       localStorage.clear();
+      sessionStorage.clear();
+      document.cookie = "";
       dispatch(clearTokens());
       await logout({ refreshToken });
     } catch (error: any) {

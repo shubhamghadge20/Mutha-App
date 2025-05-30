@@ -1,12 +1,16 @@
 const { fetchHistory, deleteHistoryById } = require('../services/xmlHistory.service');
 
 const getXmlComparisonHistory = async (req, res) => {
-  const { product } = req.query;
+  const { product, page = 1, limit = 10 } = req.query;
+
   try {
-    const history = await fetchHistory(product);
+    const history = await fetchHistory(product, parseInt(page), parseInt(limit));
     res.send(history);
   } catch (error) {
-    res.status(500).send({ message: 'Failed to fetch history', error: error.message });
+    res.status(500).send({
+      message: 'Failed to fetch history',
+      error: error.message,
+    });
   }
 };
 

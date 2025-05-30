@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaBars, FaBell, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
+import { FaBars, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 import { RootState } from "@/store";
@@ -43,13 +43,6 @@ const Navbar = () => {
           <div className="flex items-center gap-8">
             {isAuthenticated ? (
               <>
-                <button
-                  className="text-white hover:text-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
-                  aria-label="Notifications"
-                >
-                  <FaBell className="text-2xl" />
-                </button>
-
                 <div className="flex items-center gap-2 text-white select-none">
                   <FaUserCircle className="text-3xl" />
                   <span className="font-semibold text-lg truncate max-w-xs">
