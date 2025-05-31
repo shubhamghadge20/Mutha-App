@@ -3,15 +3,18 @@ import socket from "@/services/socket";
 import { Product } from "@/types";
 import { getProducts } from "@/features/product/productAPI";
 
-import { useAppDispatch } from "@/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import {
   lockFurnaceThunk,
   unlockFurnaceThunk,
   mqttenableThunk,
   mqttdisableThunk,
 } from "@/features/mqtt";
+import { RootState } from "@/store";
 
 const XmlMaster = () => {
+  const userRole = useAppSelector((state: RootState) => state.auth.user?.role);
+  const isAdmin = userRole === "admin";
   const dispatch = useAppDispatch();
 
   const [selectedProduct, setSelectedProduct] = useState<string>("");
@@ -37,7 +40,6 @@ const XmlMaster = () => {
   };
 
   const onError = (err: any) => {
-    console.error("Comparison error:", err);
     setError(err.message || "Unknown error");
     setLoading(false);
   };
@@ -120,14 +122,11 @@ const XmlMaster = () => {
   useEffect(() => {
     if (mqttStatus === "enabled") {
       if (lockStatus) {
-        console.log("Lock command triggered");
         dispatch(lockFurnaceThunk());
       } else {
-        console.log("Unlock command triggered");
         dispatch(unlockFurnaceThunk());
       }
     }
-    console.log("MQTT : ", mqttStatus, "   Lock : ", lockStatus);
   }, [lockStatus, mqttStatus, dispatch]);
 
   const handleToggleMqtt = async () => {
@@ -184,21 +183,22 @@ const XmlMaster = () => {
             Refresh File
           </button>
 
-          <button
-            onClick={handleToggleMqtt}
-            className={`cursor-pointer px-5 py-2 rounded-xl font-semibold transition ${
-              mqttStatus === "enabled"
-                ? "bg-red-600 text-white hover:bg-red-700"
-                : "bg-green-600 text-white hover:bg-green-700"
-            }`}
-          >
-            {mqttStatus === "enabled" ? "Disable MQTT" : "Enable MQTT"}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleToggleMqtt}
+              className={`cursor-pointer px-5 py-2 rounded-xl font-semibold transition ${
+                mqttStatus === "enabled"
+                  ? "bg-red-600 text-white hover:bg-red-700"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }`}
+            >
+              {mqttStatus === "enabled" ? "Disable MQTT" : "Enable MQTT"}
+            </button>
+          )}
 
-          {lockStatus && mqttStatus === "enabled" && (
+          {lockStatus && mqttStatus === "enabled" && isAdmin && (
             <button
               onClick={() => {
-                console.log("Manual unlock triggered");
                 setLockStatus(false);
                 dispatch(unlockFurnaceThunk());
               }}
