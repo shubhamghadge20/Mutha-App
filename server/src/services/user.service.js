@@ -4,12 +4,11 @@ const ApiError = require('../utils/ApiError');
 
 const createAdmin = async () => {
   try {
-    const hashedPassword = await bcrypt.hash('Admin@123', 10);
     const userData = {
       name: 'MachineWise Admin',
       email: 'admin@machinewise.in',
-      mobile: 1234567890,
-      password: hashedPassword,
+      mobile: 1234567899,
+      password: 'Admin@123',
       role: 'admin',
     };
     const user = new User(userData);

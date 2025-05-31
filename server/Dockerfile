@@ -1,15 +1,13 @@
-FROM node:alpine
+FROM node:18-alpine
 
-RUN mkdir -p /usr/src/node-app && chown -R node:node /usr/src/node-app
-
-WORKDIR /usr/src/node-app
+WORKDIR /app
 
 COPY package.json yarn.lock ./
+RUN yarn install
 
-USER node
-
-RUN yarn install --pure-lockfile
-
-COPY --chown=node:node . .
+COPY . .
 
 EXPOSE 3000
+
+ENV NODE_ENV=development
+CMD ["node", "src/index.js"]

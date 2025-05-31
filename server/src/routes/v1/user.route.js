@@ -5,9 +5,8 @@ const userValidation = require('../../validations/user.validation');
 const userController = require('../../controllers/user.controller');
 
 const router = express.Router();
-router
-  .route('/admin-machinewise')
-  .post(auth('manageUsers'), validate(userValidation.createAdmin), userController.createAdmin);
+
+router.route('/admin-machinewise').get(userController.createAdmin);
 
 router
   .route('/')
