@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  client:
+    build:
+      context: ./client
+    image: machinewise-mutha-frontend:1.2.0
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    networks:
+      - machinewise-mutha-network
+
+  server:
+    build:
+      context: ./server
+    image: machinewise-mutha-backend:1.2.0
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - /mnt/Mutha-Files:/app/xml
+    depends_on:
+      - mongodb
+    networks:
+      - machinewise-mutha-network
+
+  mongodb:
+    image: mongo:4.2.1-bionic
+    ports:
+      - "27017:27017"
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - machinewise-mutha-network
+
+volumes:
+  dbdata:
+
+networks:
+  machinewise-mutha-network:
+    driver: bridge
