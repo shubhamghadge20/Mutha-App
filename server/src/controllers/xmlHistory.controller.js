@@ -1,10 +1,10 @@
 const { fetchHistory, deleteHistoryById } = require('../services/xmlHistory.service');
 
 const getXmlComparisonHistory = async (req, res) => {
-  const { product, page = 1, limit = 10 } = req.query;
+  const { product, page, limit, startTime, endTime } = req.query;
 
   try {
-    const history = await fetchHistory(product, parseInt(page), parseInt(limit));
+    const history = await fetchHistory(product, parseInt(page), parseInt(limit), startTime, endTime);
     res.send(history);
   } catch (error) {
     res.status(500).send({

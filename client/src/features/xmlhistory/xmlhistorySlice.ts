@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import dayjs from "dayjs";
 import { XmlComparisonHistoryItem } from "@/types/xmlComparison";
 import { fetchXmlHistory, deleteXmlHistoryById } from "./xmlhistoryAPI";
 
@@ -19,6 +20,8 @@ interface XmlHistoryState {
   totalPages: number;
   limit: number;
   total: number;
+  startDate: string;
+  endDate: string;
 }
 
 const initialState: XmlHistoryState = {
@@ -30,24 +33,33 @@ const initialState: XmlHistoryState = {
   totalPages: 1,
   limit: 10,
   total: 0,
+  startDate: dayjs().subtract(1, "day").format("YYYY-MM-DDTHH:mm"),
+  endDate: dayjs().format("YYYY-MM-DDTHH:mm"),
 };
 
-// Thunk accepts an object with optional product, page, limit
+// Thunk to fetch history
 export const fetchXmlHistoryThunk = createAsyncThunk<
   PaginatedXmlHistoryResponse,
-  { product?: string; page?: number; limit?: number },
+  {
+    product?: string;
+    page?: number;
+    limit?: number;
+    startTime?: number;
+    endTime?: number;
+  },
   { rejectValue: string }
 >(
   "xmlHistory/fetch",
-  async ({ product, page = 1, limit = 10 }, { rejectWithValue }) => {
+  async ({ product, page, limit, startTime, endTime }, { rejectWithValue }) => {
     try {
-      return await fetchXmlHistory(product, page, limit);
+      return await fetchXmlHistory(product, page, limit, startTime, endTime);
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch history");
     }
   }
 );
 
+// Thunk to delete history
 export const deleteXmlHistoryThunk = createAsyncThunk<
   string,
   string,
@@ -79,6 +91,12 @@ const xmlHistorySlice = createSlice({
     },
     setLimit: (state, action: PayloadAction<number>) => {
       state.limit = action.payload;
+    },
+    setStartDate: (state, action: PayloadAction<string>) => {
+      state.startDate = action.payload;
+    },
+    setEndDate: (state, action: PayloadAction<string>) => {
+      state.endDate = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -117,7 +135,13 @@ const xmlHistorySlice = createSlice({
   },
 });
 
-export const { selectComparison, clearSelected, setPage, setLimit } =
-  xmlHistorySlice.actions;
+export const {
+  selectComparison,
+  clearSelected,
+  setPage,
+  setLimit,
+  setStartDate,
+  setEndDate,
+} = xmlHistorySlice.actions;
 
 export default xmlHistorySlice.reducer;

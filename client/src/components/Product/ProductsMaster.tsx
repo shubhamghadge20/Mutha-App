@@ -184,13 +184,19 @@ const ProductsMaster = () => {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="bg-white/80 backdrop-blur-md shadow-2xl border border-gray-200 rounded-xl overflow-hidden hover:shadow-blue-300 transition cursor-pointer"
-                onClick={() => openDetailModal(product.id)}
+                className="bg-white/80 backdrop-blur-md shadow-2xl border border-gray-200 rounded-xl overflow-hidden transition"
               >
                 <div className="p-5 flex justify-between items-center">
                   <h3 className="text-xl font-bold text-gray-800">
                     {product.name}
                   </h3>
+                  <button
+                    onClick={() => openDetailModal(product.id)}
+                    className="text-blue-600 hover:underline font-medium"
+                    title="View Product"
+                  >
+                    View
+                  </button>
                 </div>
 
                 <div className="border-t flex justify-end gap-4 px-5 py-3 bg-gray-50">

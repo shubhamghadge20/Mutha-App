@@ -69,7 +69,7 @@ const XmlMaster = () => {
     const enableMqttByDefault = async () => {
       try {
         await dispatch(mqttenableThunk()).unwrap();
-        setMqttStatus("enabled");
+        if (mqttStatus === "disabled") setMqttStatus("enabled");
       } catch (err) {
         console.error("Failed to enable MQTT on start:", err);
       }
@@ -120,12 +120,16 @@ const XmlMaster = () => {
   };
 
   useEffect(() => {
+    if (!comparisonData) return;
+    console.log("Lock status : ", lockStatus);
     if (mqttStatus === "enabled") {
       if (lockStatus) {
         dispatch(lockFurnaceThunk());
       } else {
         dispatch(unlockFurnaceThunk());
       }
+    } else {
+      dispatch(unlockFurnaceThunk());
     }
   }, [lockStatus, mqttStatus, dispatch]);
 

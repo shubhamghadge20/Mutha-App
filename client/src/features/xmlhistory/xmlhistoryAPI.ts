@@ -12,12 +12,16 @@ interface PaginatedXmlHistoryResponse {
 export const fetchXmlHistory = async (
   product?: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 20,
+  startTime?: number,
+  endTime?: number
 ): Promise<PaginatedXmlHistoryResponse> => {
   const params = new URLSearchParams();
   if (product) params.append("product", product);
   params.append("page", page.toString());
   params.append("limit", limit.toString());
+  if (startTime) params.append("startTime", startTime.toString());
+  if (endTime) params.append("endTime", endTime.toString());
 
   const url = `/v1/history?${params.toString()}`;
   const response = await api.get(url);

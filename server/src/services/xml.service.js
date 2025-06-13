@@ -4,6 +4,7 @@ const xml2js = require('xml2js');
 const { getAllProducts } = require('./product.service');
 const { getLatestXmlFile } = require('../utils/file.utils');
 const XmlComparison = require('../models/xmlComparison.model');
+const { getMqttStatus } = require('./mqtt.service');
 
 const parseXml = (filePath) => {
   const xml = fs.readFileSync(filePath, 'utf-8');
@@ -88,23 +89,33 @@ const handleXmlComparison = async (selectedProductName) => {
 
   const reportedElements = extractReportedElements(elements);
   const comparisonResults = await compareWithDatabase(reportedElements, selectedProductName);
-  const comparisonDate = new Date().toISOString();
+  const mqttStatus = await getMqttStatus();
 
   const resultToReturn = {
     latestFile: path.basename(latestFile),
     selectedProduct: selectedProductName,
     sampleName,
     comparisonResults,
-    date: comparisonDate,
+    date: Date.now(),
   };
 
-  await XmlComparison.create({
-    latestFile: path.basename(latestFile),
-    selectedProduct: selectedProductName,
-    sampleName,
-    comparisonResults,
-    date: comparisonDate,
-  });
+  mqttStatus === 'enabled'
+    ? await XmlComparison.create({
+        latestFile: path.basename(latestFile),
+        selectedProduct: selectedProductName,
+        sampleName,
+        comparisonResults,
+        lockStatus: comparisonResults.every((r) => r.inTolerance) === true ? 'Unlocked' : 'Locked',
+        date: Date.now(),
+      })
+    : await XmlComparison.create({
+        latestFile: path.basename(latestFile),
+        selectedProduct: selectedProductName,
+        sampleName,
+        comparisonResults,
+        lockStatus: 'Lock disabled',
+        date: Date.now(),
+      });
 
   comparisonCache.lastComparedFile = latestFile;
   comparisonCache.lastModifiedTime = lastModifiedTime;

@@ -1,11 +1,34 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { clearSelected } from "@/features/xmlhistory/xmlhistorySlice";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const XmlComparisonDetails = () => {
   const dispatch = useAppDispatch();
   const { selected } = useAppSelector((state) => state.xmlhistory);
 
   if (!selected) return null;
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(`Sample Report - ${selected.sampleName}`, 14, 20);
+
+    const tableData = selected.comparisonResults.map((item) => [
+      item.itemName,
+      `[${item.lowertolerance} - ${item.uppertolerance}]`,
+      item.resultValue,
+      item.inTolerance ? "OK" : "Not OK",
+    ]);
+
+    autoTable(doc, {
+      head: [["Item Name", "Expected Range", "Reported Value", "Status"]],
+      body: tableData,
+      startY: 30,
+    });
+
+    doc.save(`${selected.sampleName}_report.pdf`);
+  };
 
   return (
     <div className="fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center">
@@ -14,12 +37,20 @@ const XmlComparisonDetails = () => {
           <h2 className="text-2xl font-semibold text-gray-800">
             Sample Details - {selected.sampleName}
           </h2>
-          <button
-            onClick={() => dispatch(clearSelected())}
-            className="text-white bg-red-600 px-4 py-2 rounded-md hover:bg-red-700 transition"
-          >
-            Close
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadPdf}
+              className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition"
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={() => dispatch(clearSelected())}
+              className="text-white bg-red-600 px-4 py-2 rounded-md hover:bg-red-700 transition"
+            >
+              Close
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

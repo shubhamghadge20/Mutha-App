@@ -12,8 +12,9 @@ const xmlComparisonSchema = new mongoose.Schema({
   latestFile: String,
   selectedProduct: String,
   sampleName: String,
-  date: Date,
+  date: Number,
   comparisonResults: [comparisonItemSchema],
+  lockStatus: String,
 });
 
 module.exports = mongoose.model('XmlComparison', xmlComparisonSchema);

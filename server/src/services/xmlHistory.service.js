@@ -1,8 +1,19 @@
-const XmlComparison = require('../models/xmlComparison.model');
+const { XmlComparison } = require('../models/');
 
-const fetchHistory = async (product, page = 1, limit = 10) => {
+const fetchHistory = async (product, page, limit, startTime, endTime) => {
   const skip = (page - 1) * limit;
-  const filter = product ? { selectedProduct: product } : {};
+  const filter = {};
+
+  if (startTime && endTime) {
+    filter.date = {
+      $gte: new Date(Number(startTime)),
+      $lte: new Date(Number(endTime)),
+    };
+  }
+
+  if (product) {
+    filter.selectedProduct = product;
+  }
 
   const [data, total] = await Promise.all([
     XmlComparison.find(filter).sort({ date: -1 }).skip(skip).limit(limit),

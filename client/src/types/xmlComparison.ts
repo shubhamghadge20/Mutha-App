@@ -20,6 +20,7 @@ export interface XmlComparisonHistoryItem {
   sampleName: string;
   date: string;
   comparisonResults: XmlComparisonItem[];
+  lockStatus: string;
 }
 
 export interface XmlItem {
