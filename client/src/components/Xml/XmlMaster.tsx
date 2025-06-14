@@ -20,10 +20,17 @@ const XmlMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [productList, setProductList] = useState<Product[]>([]);
   const [comparisonData, setComparisonData] = useState<any>(null);
-  const [lockStatus, setLockStatus] = useState(false);
+
+  const [lockStatus, setLockStatus] = useState<boolean>(() => {
+    const saved = localStorage.getItem("lockStatus");
+    return saved === "true";
+  });
+
   const [loading, setLoading] = useState(false);
   const [mqttStatus, setMqttStatus] = useState<"enabled" | "disabled">(
-    "enabled"
+    () =>
+      (localStorage.getItem("mqttStatus") as "enabled" | "disabled") ||
+      "enabled"
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -33,8 +40,9 @@ const XmlMaster = () => {
     const isLocked = data?.comparisonResults?.some(
       (item: any) => !item.inTolerance
     );
-    setLockStatus(isLocked);
 
+    setLockStatus(isLocked);
+    localStorage.setItem("lockStatus", isLocked.toString());
     setLoading(false);
     setError(null);
   };
@@ -66,17 +74,20 @@ const XmlMaster = () => {
   }, []);
 
   useEffect(() => {
-    const enableMqttByDefault = async () => {
+    const applySavedMqttStatus = async () => {
       try {
-        await dispatch(mqttenableThunk()).unwrap();
-        if (mqttStatus === "disabled") setMqttStatus("enabled");
+        if (mqttStatus === "enabled") {
+          await dispatch(mqttenableThunk()).unwrap();
+        } else {
+          await dispatch(mqttdisableThunk()).unwrap();
+        }
       } catch (err) {
-        console.error("Failed to enable MQTT on start:", err);
+        console.error("Failed to apply MQTT status:", err);
       }
     };
 
-    enableMqttByDefault();
-  }, [dispatch]);
+    applySavedMqttStatus();
+  }, [dispatch, mqttStatus]);
 
   useEffect(() => {
     if (!socket.connected) socket.connect();
@@ -122,6 +133,7 @@ const XmlMaster = () => {
   useEffect(() => {
     if (!comparisonData) return;
     console.log("Lock status : ", lockStatus);
+
     if (mqttStatus === "enabled") {
       if (lockStatus) {
         dispatch(lockFurnaceThunk());
@@ -131,16 +143,18 @@ const XmlMaster = () => {
     } else {
       dispatch(unlockFurnaceThunk());
     }
-  }, [lockStatus, mqttStatus, dispatch]);
+  }, [lockStatus, mqttStatus, dispatch, comparisonData]);
 
   const handleToggleMqtt = async () => {
     try {
       if (mqttStatus === "enabled") {
         await dispatch(mqttdisableThunk()).unwrap();
         setMqttStatus("disabled");
+        localStorage.setItem("mqttStatus", "disabled");
       } else {
         await dispatch(mqttenableThunk()).unwrap();
         setMqttStatus("enabled");
+        localStorage.setItem("mqttStatus", "enabled");
       }
     } catch (err) {
       console.error("MQTT toggle failed:", err);
@@ -204,6 +218,7 @@ const XmlMaster = () => {
             <button
               onClick={() => {
                 setLockStatus(false);
+                localStorage.setItem("lockStatus", "false");
                 dispatch(unlockFurnaceThunk());
               }}
               className="cursor-pointer px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"

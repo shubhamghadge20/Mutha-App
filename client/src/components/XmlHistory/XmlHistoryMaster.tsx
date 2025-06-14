@@ -127,7 +127,7 @@ const XmlHistoryMaster = () => {
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text("XML Comparison History Report", 14, 20);
+    doc.text("MachinWise Comparison History Report", 14, 20);
 
     const columns = ["#", "Sample ID", "Product", "Date", "Time", "Status"];
 
@@ -150,7 +150,7 @@ const XmlHistoryMaster = () => {
       styles: { fontSize: 10 },
     });
 
-    const fileName = `XML_History_${safeStartDate.format(
+    const fileName = `MchineWise_Interlocking_History_${safeStartDate.format(
       "DD-MM-YYYY"
     )}_to_${safeEndDate.format("DD-MM-YYYY")}.pdf`;
     doc.save(fileName);
