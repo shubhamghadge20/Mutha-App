@@ -45,7 +45,7 @@ app.use(compression());
 
 app.use(
   cors({
-    origin: 'http://localhost:5173', // <-- Your Vite frontend origin
+    origin: ['http://localhost:5173', 'http://localhost'], // <-- Your Vite frontend origin
     credentials: true,
   })
 );

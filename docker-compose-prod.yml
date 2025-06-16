@@ -6,7 +6,7 @@ services:
       context: ./client
     image: machinewise-mutha-frontend:1.2.0
     ports:
-      - "5173:80"
+      - "80:80"
     depends_on:
       - server
     restart: always
