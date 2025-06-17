@@ -10,6 +10,11 @@ RUN yarn build
 
 # Production stage
 FROM nginx:alpine
+
+# 🔥 Add this line to copy your custom nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy the built app
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
