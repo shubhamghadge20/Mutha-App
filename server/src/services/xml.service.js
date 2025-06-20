@@ -46,10 +46,19 @@ const comparisonCache = {
   lastComparedFile: null,
   lastModifiedTime: null,
   lastSelectedProduct: null,
+  lastSelectedFurnace: null,
   lastComparisonResult: null,
 };
 
-const handleXmlComparison = async (selectedProductName) => {
+const handleXmlComparison = async (selectedProductName, selectedFurnaceId) => {
+  if (!selectedFurnaceId) {
+    throw new Error('Furnace ID is required for XML comparison.');
+  }
+
+  if (!selectedProductName) {
+    throw new Error('Product name is required for XML comparison.');
+  }
+
   const folderPath = process.env.XML_FOLDER_PATH;
   if (!folderPath) {
     throw new Error('XML_FOLDER_PATH environment variable is not set.');
@@ -62,8 +71,9 @@ const handleXmlComparison = async (selectedProductName) => {
     return {
       latestFile: null,
       comparisonResults: [],
-      sampleName: 'No File Found',
       selectedProduct: selectedProductName,
+      selectedFurnace: selectedFurnaceId,
+      sampleName: 'No File Found',
       date: new Date().toISOString(),
     };
   }
@@ -74,7 +84,8 @@ const handleXmlComparison = async (selectedProductName) => {
   if (
     comparisonCache.lastComparedFile === latestFile &&
     comparisonCache.lastModifiedTime === lastModifiedTime &&
-    comparisonCache.lastSelectedProduct === selectedProductName
+    comparisonCache.lastSelectedProduct === selectedProductName &&
+    comparisonCache.lastSelectedFurnace === selectedFurnaceId
   ) {
     return comparisonCache.lastComparisonResult;
   }
@@ -91,35 +102,33 @@ const handleXmlComparison = async (selectedProductName) => {
   const comparisonResults = await compareWithDatabase(reportedElements, selectedProductName);
   const mqttStatus = await getMqttStatus();
 
+  const lockStatus =
+    mqttStatus === 'enabled' ? (comparisonResults.every((r) => r.inTolerance) ? 'Unlocked' : 'Locked') : 'Lock disabled';
+
   const resultToReturn = {
     latestFile: path.basename(latestFile),
     selectedProduct: selectedProductName,
+    selectedFurnace: selectedFurnaceId,
     sampleName,
     comparisonResults,
+    lockStatus,
     date: Date.now(),
   };
 
-  mqttStatus === 'enabled'
-    ? await XmlComparison.create({
-        latestFile: path.basename(latestFile),
-        selectedProduct: selectedProductName,
-        sampleName,
-        comparisonResults,
-        lockStatus: comparisonResults.every((r) => r.inTolerance) === true ? 'Unlocked' : 'Locked',
-        date: Date.now(),
-      })
-    : await XmlComparison.create({
-        latestFile: path.basename(latestFile),
-        selectedProduct: selectedProductName,
-        sampleName,
-        comparisonResults,
-        lockStatus: 'Lock disabled',
-        date: Date.now(),
-      });
+  await XmlComparison.create({
+    latestFile: path.basename(latestFile),
+    selectedProduct: selectedProductName,
+    selectedFurnace: selectedFurnaceId,
+    sampleName,
+    comparisonResults,
+    lockStatus,
+    date: Date.now(),
+  });
 
   comparisonCache.lastComparedFile = latestFile;
   comparisonCache.lastModifiedTime = lastModifiedTime;
   comparisonCache.lastSelectedProduct = selectedProductName;
+  comparisonCache.lastSelectedFurnace = selectedFurnaceId;
   comparisonCache.lastComparisonResult = resultToReturn;
 
   return resultToReturn;

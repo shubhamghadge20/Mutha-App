@@ -14,6 +14,7 @@ export const getUser = async (id: string) => {
 
 export const getUsers = async () => {
   const response = await api.get("/v1/users");
+  console.log(response.data);
   return response.data;
 };
 

@@ -1,12 +1,12 @@
 import { api } from "@services/api";
 
-export const lockFurnace = async (): Promise<string> => {
-  const response = await api.get("/v1/mqtt/lock");
+export const lockFurnace = async (gatewayMac: string): Promise<string> => {
+  const response = await api.get(`/v1/mqtt/lock?gatewayMac=${gatewayMac}`);
   return response.data;
 };
 
-export const unlockFurnace = async (): Promise<string> => {
-  const response = await api.get("/v1/mqtt/unlock");
+export const unlockFurnace = async (gatewayMac: string): Promise<string> => {
+  const response = await api.get(`/v1/mqtt/unlock?gatewayMac=${gatewayMac}`);
   return response.data;
 };
 

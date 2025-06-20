@@ -18,15 +18,21 @@ const initialState: MqttState = {
   mqttStatus: "enabled",
 };
 
-export const lockFurnaceThunk = createAsyncThunk("mqtt/lock", async () => {
-  const res = await lockFurnace();
-  return res;
-});
+export const lockFurnaceThunk = createAsyncThunk(
+  "mqtt/lock",
+  async (gatewayMac: string) => {
+    const res = await lockFurnace(gatewayMac);
+    return res;
+  }
+);
 
-export const unlockFurnaceThunk = createAsyncThunk("mqtt/unlock", async () => {
-  const res = await unlockFurnace();
-  return res;
-});
+export const unlockFurnaceThunk = createAsyncThunk(
+  "mqtt/unlock",
+  async (gatewayMac: string) => {
+    const res = await unlockFurnace(gatewayMac);
+    return res;
+  }
+);
 
 export const mqttstatusThunk = createAsyncThunk("mqtt/status", async () => {
   const res = await status();
@@ -60,7 +66,7 @@ const mqttSlice = createSlice({
       })
       .addCase(lockFurnaceThunk.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.error.message ?? "Status failed";
+        state.error = action.error.message ?? "Lock failed";
       })
 
       .addCase(unlockFurnaceThunk.pending, (state) => {

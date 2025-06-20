@@ -18,7 +18,8 @@ const Sidebar = ({
     { id: 1, item: "Dashboard", path: "/" },
     { id: 2, item: "Users", path: "/users", role: "admin" },
     { id: 3, item: "Products", path: "/product", role: "admin" },
-    { id: 4, item: "Interlock History", path: "/history" },
+    { id: 4, item: "Furnace", path: "/furnace-gateway", role: "admin" },
+    { id: 5, item: "Interlock History", path: "/history" },
   ];
 
   return (

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import socket from "@/services/socket";
-import { Product } from "@/types";
+import { Product, FurnaceGateway } from "@/types";
 import { getProducts } from "@/features/product/productAPI";
-
+import { getFurnaceGateways } from "@/features/FurnaceGateway/furnaceGatewayAPI";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import {
   lockFurnaceThunk,
@@ -19,8 +19,13 @@ const XmlMaster = () => {
 
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [productList, setProductList] = useState<Product[]>([]);
-  const [comparisonData, setComparisonData] = useState<any>(null);
+  const [furnaceList, setFurnaceList] = useState<FurnaceGateway[]>([]);
 
+  const [selectedFurnace, setSelectedFurnace] = useState<string>(() => {
+    return localStorage.getItem("selectedFurnace") || "";
+  });
+
+  const [comparisonData, setComparisonData] = useState<any>(null);
   const [lockStatus, setLockStatus] = useState<boolean>(() => {
     const saved = localStorage.getItem("lockStatus");
     return saved === "true";
@@ -70,7 +75,33 @@ const XmlMaster = () => {
       }
     };
 
+    const fetchFurnaces = async () => {
+      try {
+        const res = await getFurnaceGateways();
+        if (Array.isArray(res.results)) {
+          setFurnaceList(res.results);
+          const saved = localStorage.getItem("selectedFurnace");
+          const initial =
+            saved &&
+            res.results.some((f: FurnaceGateway) => f.furnaceId === saved)
+              ? saved
+              : "";
+          setSelectedFurnace(initial);
+
+          const gatewayMac = res.results.find(
+            (f: FurnaceGateway) => f.furnaceId === initial
+          )?.gatewayMac;
+          if (gatewayMac) {
+            localStorage.setItem("gatewayMac", gatewayMac);
+          }
+        }
+      } catch {
+        setError("Failed to load furnaces");
+      }
+    };
+
     fetchProducts();
+    fetchFurnaces();
   }, []);
 
   useEffect(() => {
@@ -90,11 +121,14 @@ const XmlMaster = () => {
   }, [dispatch, mqttStatus]);
 
   useEffect(() => {
+    if (!selectedFurnace) return;
+
     if (!socket.connected) socket.connect();
 
     const handleConnect = () => {
-      console.log("Socket connected:", socket.id);
+      socket.emit("selectFurnace", selectedFurnace);
       if (selectedProduct) {
+        socket.emit("selectProduct", selectedProduct);
         socket.emit("startComparison", selectedProduct);
         setLoading(true);
       }
@@ -112,38 +146,73 @@ const XmlMaster = () => {
         socket.disconnect();
       }
     };
-  }, []);
+  }, [selectedFurnace]);
 
   useEffect(() => {
-    if (selectedProduct && socket.connected) {
-      localStorage.setItem("selectedProduct", selectedProduct);
-      setComparisonData(null);
-      socket.emit("startComparison", selectedProduct);
-      setLoading(true);
+    if (!selectedFurnace || !socket.connected || !selectedProduct) return;
+
+    localStorage.setItem("selectedProduct", selectedProduct);
+    setComparisonData(null);
+    socket.emit("selectProduct", selectedProduct);
+    socket.emit("startComparison", selectedProduct);
+    setLoading(true);
+  }, [selectedProduct, selectedFurnace]);
+
+  useEffect(() => {
+    if (selectedFurnace) {
+      localStorage.setItem("selectedFurnace", selectedFurnace);
+
+      const selectedGateway = furnaceList.find(
+        (f: FurnaceGateway) => f.furnaceId === selectedFurnace
+      );
+      const gatewayMac = selectedGateway?.gatewayMac;
+      if (gatewayMac) {
+        localStorage.setItem("gatewayMac", gatewayMac);
+      }
     }
-  }, [selectedProduct]);
+  }, [selectedFurnace, furnaceList]);
+
+  useEffect(() => {
+    if (!socket.connected || !selectedFurnace) return;
+    socket.emit("selectFurnace", selectedFurnace);
+    if (selectedProduct) socket.emit("selectProduct", selectedProduct);
+  }, [selectedFurnace, selectedProduct]);
 
   const handleRefresh = () => {
-    if (selectedProduct && socket.connected) {
+    if (selectedFurnace && selectedProduct && socket.connected) {
       socket.emit("startComparison", selectedProduct);
       setLoading(true);
     }
   };
 
   useEffect(() => {
-    if (!comparisonData) return;
-    console.log("Lock status : ", lockStatus);
+    if (!comparisonData || !selectedFurnace || furnaceList.length === 0) return;
+
+    const selectedGateway = furnaceList.find(
+      (f: FurnaceGateway) => f.furnaceId === selectedFurnace
+    );
+    const gatewayMac = selectedGateway?.gatewayMac;
+    if (!gatewayMac) return;
+
+    console.log("Lock status : ", lockStatus, "| gatewayMac:", gatewayMac);
 
     if (mqttStatus === "enabled") {
       if (lockStatus) {
-        dispatch(lockFurnaceThunk());
+        dispatch(lockFurnaceThunk(gatewayMac));
       } else {
-        dispatch(unlockFurnaceThunk());
+        dispatch(unlockFurnaceThunk(gatewayMac));
       }
     } else {
-      dispatch(unlockFurnaceThunk());
+      dispatch(unlockFurnaceThunk(gatewayMac));
     }
-  }, [lockStatus, mqttStatus, dispatch, comparisonData]);
+  }, [
+    lockStatus,
+    mqttStatus,
+    dispatch,
+    comparisonData,
+    selectedFurnace,
+    furnaceList,
+  ]);
 
   const handleToggleMqtt = async () => {
     try {
@@ -170,7 +239,29 @@ const XmlMaster = () => {
 
   return (
     <div className="p-6 bg-white rounded-2xl shadow-xl space-y-6">
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
+        <div className="w-full sm:w-72">
+          <label
+            htmlFor="furnaceSelect"
+            className="block mb-1 text-sm font-medium text-stone-700"
+          >
+            Select Furnace
+          </label>
+          <select
+            id="furnaceSelect"
+            value={selectedFurnace}
+            onChange={(e) => setSelectedFurnace(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- Select Furnace --</option>
+            {furnaceList.map((f: FurnaceGateway) => (
+              <option key={f.id} value={f.furnaceId}>
+                {f.furnaceId}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="w-full sm:w-72">
           <label
             htmlFor="productSelect"
@@ -196,7 +287,7 @@ const XmlMaster = () => {
           <button
             onClick={handleRefresh}
             className="cursor-pointer px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
-            disabled={loading}
+            disabled={loading || !selectedFurnace}
           >
             Refresh File
           </button>
@@ -219,7 +310,14 @@ const XmlMaster = () => {
               onClick={() => {
                 setLockStatus(false);
                 localStorage.setItem("lockStatus", "false");
-                dispatch(unlockFurnaceThunk());
+
+                const selectedGateway = furnaceList.find(
+                  (f: FurnaceGateway) => f.furnaceId === selectedFurnace
+                );
+                const gatewayMac = selectedGateway?.gatewayMac;
+                if (gatewayMac) {
+                  dispatch(unlockFurnaceThunk(gatewayMac));
+                }
               }}
               className="cursor-pointer px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
             >

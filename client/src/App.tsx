@@ -5,7 +5,6 @@ import { RegisterForm, LoginForm, setAuthFromStorage } from "@features/auth";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { useAuth } from "@/hooks/auth/useAuth";
 
-// ✅ Import new working global lock listener
 import { useGlobalLockListener } from "@/hooks/socket/useXmlComparisonListener";
 
 import Dashboard from "./pages/Dashboard";
@@ -19,14 +18,15 @@ import Footer from "@components/Footer";
 import Layout from "@components/Layout";
 import ProtectedRoute from "@components/ProtectedRoute";
 import PageNotFound from "@components/PageNotFound";
+import FurnaceGatewayPage from "./pages/FurnaceGateway";
 
 function App() {
   const dispatch = useAppDispatch();
   const authChecked = useAppSelector((state) => state.auth.authChecked);
   const { checkTokenExpiration, tryRefreshToken } = useAuth();
 
-  // ✅ Register global lock listener ONCE
-  useGlobalLockListener();
+  const gatewayMac = localStorage.getItem("gatewayMac") || "";
+  useGlobalLockListener(gatewayMac);
 
   useEffect(() => {
     dispatch(setAuthFromStorage());
@@ -102,6 +102,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <XmlHistoryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/furnace-gateway"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <FurnaceGatewayPage />
               </Layout>
             </ProtectedRoute>
           }

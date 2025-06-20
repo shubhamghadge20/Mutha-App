@@ -8,6 +8,7 @@ const productRoute = require('./product.route');
 const xmlRoute = require('./xml.route');
 const xmlHistoryRoute = require('./xmlhistory.route');
 const mqttRoute = require('./mqtt.route');
+const furnaceGatewayRoute = require('./furnaceGateway.route');
 
 const router = express.Router();
 
@@ -35,6 +36,10 @@ const defaultRoutes = [
   {
     path: '/mqtt',
     route: mqttRoute,
+  },
+  {
+    path: '/furnace-gateway',
+    route: furnaceGatewayRoute,
   },
 ];
 

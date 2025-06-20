@@ -3,3 +3,4 @@ module.exports.User = require('./user.model');
 module.exports.Product = require('./product.model');
 module.exports.XmlComparison = require('./xmlComparison.model');
 module.exports.Mqtt = require('./mqtt.model');
+module.exports.FurnaceGateway = require('./FurnaceGateway.model');

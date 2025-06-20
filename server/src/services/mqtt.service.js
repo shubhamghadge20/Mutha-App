@@ -1,3 +1,4 @@
+// mqtt.service.js
 const mqtt = require('mqtt');
 const config = require('../config/config');
 const { info, error } = require('../config/logger');
@@ -5,66 +6,59 @@ const { Mqtt } = require('../models/');
 
 const mqttBroker = config.mqtt.mqttBroker;
 const mqttPort = config.mqtt.mqttPort;
-const mqttPubTopic = config.mqtt.mqttPubTopic;
-const mqttSubTopic = config.mqtt.mqttSubTopic;
-
 const mqttURIString = `mqtt://${mqttBroker}:${mqttPort}`;
 const client = mqtt.connect(mqttURIString);
 
 const mqttConnect = () => {
   client.on('connect', () => {
-    client.subscribe(mqttSubTopic);
-    info(`Connected to MQTT with topic ${mqttSubTopic}`);
+    client.subscribe('pub1/+/');
+    info('Connected to MQTT and subscribed to pub1/+/');
   });
 };
 
-const getMessage = async () => {
+const getPubTopic = (gatewayMac) => `sub1/${gatewayMac}/`;
+const getSubTopic = (gatewayMac) => `pub1/${gatewayMac}/`;
+
+const getMessage = async (gatewayMac) => {
+  const topicFilter = getSubTopic(gatewayMac);
   return await new Promise((resolve, reject) => {
-    const messageHandler = (topic, message) => {
+    const handler = (topic, message) => {
+      if (!topic.startsWith(topicFilter)) return;
+
       try {
-        const trimmedMsg = message.toString().trim();
-        const parsedMsg = JSON.parse(trimmedMsg);
-        client.removeListener('message', messageHandler);
-        resolve(parsedMsg);
+        const parsed = JSON.parse(message.toString().trim());
+        client.removeListener('message', handler);
+        resolve(parsed);
       } catch (err) {
-        client.removeListener('message', messageHandler);
-        reject(`Failed to parse message: ${err}`);
+        client.removeListener('message', handler);
+        reject(err);
       }
     };
-
-    client.on('message', messageHandler);
+    client.on('message', handler);
   });
 };
 
-const lock = async () => {
-  const relayOn = '$IPCFG,<DEVCMD:OP=1,1 >';
-  client.publish(mqttPubTopic, relayOn, { qos: 1 }, (err) => {
-    if (err) {
-      error('Publish error:', err);
-    } else {
-      info('Message sent');
-    }
+const lock = async (gatewayMac) => {
+  const msg = '$IPCFG,<DEVCMD:OP=1,1 >';
+  const topic = getPubTopic(gatewayMac);
+  client.publish(topic, msg, { qos: 1 }, (err) => {
+    if (err) error('Publish error:', err);
+    else info(`Lock sent to ${topic}`);
   });
-  info(`Lock command : ${mqttPubTopic} | MSG : ${relayOn}`);
 };
 
-const unlock = async () => {
-  const relayOff = '$IPCFG,<DEVCMD:OP=1,0 >';
-  client.publish(mqttPubTopic, relayOff, { qos: 1 }, (err) => {
-    if (err) {
-      error('Publish error:', err);
-    } else {
-      info('Message sent');
-    }
+const unlock = async (gatewayMac) => {
+  const msg = '$IPCFG,<DEVCMD:OP=1,0 >';
+  const topic = getPubTopic(gatewayMac);
+  client.publish(topic, msg, { qos: 1 }, (err) => {
+    if (err) error('Publish error:', err);
+    else info(`Unlock sent to ${topic}`);
   });
-  info(`Lock command : ${mqttPubTopic} | MSG : ${relayOff}`);
 };
 
 const getMqttStatus = async () => {
   let doc = await Mqtt.findOne();
-  if (!doc) {
-    doc = await Mqtt.create({ value: 'enabled' });
-  }
+  if (!doc) doc = await Mqtt.create({ value: 'enabled' });
   return doc.value;
 };
 
@@ -87,11 +81,12 @@ const disableMqtt = async () => {
     await Mqtt.create({ value: 'disabled' });
   }
 };
+
 module.exports = {
   mqttConnect,
-  getMessage,
   lock,
   unlock,
+  getMessage,
   getMqttStatus,
   enableMqtt,
   disableMqtt,
