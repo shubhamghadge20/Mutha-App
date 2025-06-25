@@ -11,6 +11,7 @@ const comparisonItemSchema = new mongoose.Schema({
 const xmlComparisonSchema = new mongoose.Schema({
   latestFile: String,
   selectedProduct: String,
+  selectedFurnace: String,
   sampleName: String,
   date: Number,
   comparisonResults: [comparisonItemSchema],

@@ -5,7 +5,7 @@ import { RegisterForm, LoginForm, setAuthFromStorage } from "@features/auth";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { useAuth } from "@/hooks/auth/useAuth";
 
-import { useGlobalLockListener } from "@/hooks/socket/useXmlComparisonListener";
+import { useGlobalXmlComparisonListener } from "@/hooks/socket/useXmlComparisonListener";
 
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
@@ -25,9 +25,13 @@ function App() {
   const authChecked = useAppSelector((state) => state.auth.authChecked);
   const { checkTokenExpiration, tryRefreshToken } = useAuth();
 
-  const gatewayMac = localStorage.getItem("gatewayMac") || "";
-  useGlobalLockListener(gatewayMac);
+  // ✅ Connect the socket only once when App mounts
 
+  // 🔊 Passive listener (does not connect socket)
+
+  useGlobalXmlComparisonListener();
+
+  // 🔐 Auth load
   useEffect(() => {
     dispatch(setAuthFromStorage());
     if (!checkTokenExpiration()) tryRefreshToken();

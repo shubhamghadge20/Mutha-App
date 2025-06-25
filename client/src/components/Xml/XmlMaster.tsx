@@ -20,7 +20,6 @@ const XmlMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [productList, setProductList] = useState<Product[]>([]);
   const [furnaceList, setFurnaceList] = useState<FurnaceGateway[]>([]);
-
   const [selectedFurnace, setSelectedFurnace] = useState<string>(() => {
     return localStorage.getItem("selectedFurnace") || "";
   });
@@ -41,13 +40,6 @@ const XmlMaster = () => {
 
   const onUpdate = (data: any) => {
     setComparisonData(data);
-
-    const isLocked = data?.comparisonResults?.some(
-      (item: any) => !item.inTolerance
-    );
-
-    setLockStatus(isLocked);
-    localStorage.setItem("lockStatus", isLocked.toString());
     setLoading(false);
     setError(null);
   };
@@ -129,7 +121,10 @@ const XmlMaster = () => {
       socket.emit("selectFurnace", selectedFurnace);
       if (selectedProduct) {
         socket.emit("selectProduct", selectedProduct);
-        socket.emit("startComparison", selectedProduct);
+        socket.emit("startComparison", {
+          product: selectedProduct,
+          furnace: selectedFurnace,
+        });
         setLoading(true);
       }
     };
@@ -142,9 +137,6 @@ const XmlMaster = () => {
       socket.off("connect", handleConnect);
       socket.off("comparisonUpdate", onUpdate);
       socket.off("comparisonError", onError);
-      if (process.env.NODE_ENV === "production") {
-        socket.disconnect();
-      }
     };
   }, [selectedFurnace]);
 
@@ -154,7 +146,10 @@ const XmlMaster = () => {
     localStorage.setItem("selectedProduct", selectedProduct);
     setComparisonData(null);
     socket.emit("selectProduct", selectedProduct);
-    socket.emit("startComparison", selectedProduct);
+    socket.emit("startComparison", {
+      product: selectedProduct,
+      furnace: selectedFurnace,
+    });
     setLoading(true);
   }, [selectedProduct, selectedFurnace]);
 
@@ -172,15 +167,12 @@ const XmlMaster = () => {
     }
   }, [selectedFurnace, furnaceList]);
 
-  useEffect(() => {
-    if (!socket.connected || !selectedFurnace) return;
-    socket.emit("selectFurnace", selectedFurnace);
-    if (selectedProduct) socket.emit("selectProduct", selectedProduct);
-  }, [selectedFurnace, selectedProduct]);
-
   const handleRefresh = () => {
     if (selectedFurnace && selectedProduct && socket.connected) {
-      socket.emit("startComparison", selectedProduct);
+      socket.emit("startComparison", {
+        product: selectedProduct,
+        furnace: selectedFurnace,
+      });
       setLoading(true);
     }
   };
@@ -194,25 +186,30 @@ const XmlMaster = () => {
     const gatewayMac = selectedGateway?.gatewayMac;
     if (!gatewayMac) return;
 
-    console.log("Lock status : ", lockStatus, "| gatewayMac:", gatewayMac);
+    const backendLock =
+      comparisonData.lockStatus === true ||
+      comparisonData.lockStatus === "Locked";
+
+    const previousLock = localStorage.getItem("lockStatus") === "true";
+    localStorage.setItem("lockStatus", String(backendLock));
+    setLockStatus(backendLock);
 
     if (mqttStatus === "enabled") {
-      if (lockStatus) {
-        dispatch(lockFurnaceThunk(gatewayMac));
-      } else {
+      if (backendLock !== previousLock) {
+        if (backendLock) {
+          dispatch(lockFurnaceThunk(gatewayMac));
+        } else {
+          dispatch(unlockFurnaceThunk(gatewayMac));
+        }
+      }
+
+      if (!backendLock && previousLock === false) {
         dispatch(unlockFurnaceThunk(gatewayMac));
       }
     } else {
       dispatch(unlockFurnaceThunk(gatewayMac));
     }
-  }, [
-    lockStatus,
-    mqttStatus,
-    dispatch,
-    comparisonData,
-    selectedFurnace,
-    furnaceList,
-  ]);
+  }, [comparisonData, selectedFurnace, furnaceList, mqttStatus, dispatch]);
 
   const handleToggleMqtt = async () => {
     try {
@@ -241,17 +238,12 @@ const XmlMaster = () => {
     <div className="p-6 bg-white rounded-2xl shadow-xl space-y-6">
       <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
         <div className="w-full sm:w-72">
-          <label
-            htmlFor="furnaceSelect"
-            className="block mb-1 text-sm font-medium text-stone-700"
-          >
-            Select Furnace
-          </label>
+          <label htmlFor="furnaceSelect">Select Furnace</label>
           <select
             id="furnaceSelect"
             value={selectedFurnace}
             onChange={(e) => setSelectedFurnace(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 rounded-xl border bg-stone-50"
           >
             <option value="">-- Select Furnace --</option>
             {furnaceList.map((f: FurnaceGateway) => (
@@ -263,17 +255,12 @@ const XmlMaster = () => {
         </div>
 
         <div className="w-full sm:w-72">
-          <label
-            htmlFor="productSelect"
-            className="block mb-1 text-sm font-medium text-stone-700"
-          >
-            Select Product
-          </label>
+          <label htmlFor="productSelect">Select Product</label>
           <select
             id="productSelect"
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border border-stone-300 bg-stone-50 text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 rounded-xl border bg-stone-50"
           >
             {productList.map((product: Product) => (
               <option key={product.id} value={product.name}>
@@ -286,7 +273,7 @@ const XmlMaster = () => {
         <div className="flex flex-wrap gap-4 items-center w-full sm:w-auto sm:ml-auto mt-2 sm:mt-6">
           <button
             onClick={handleRefresh}
-            className="cursor-pointer px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            className="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold"
             disabled={loading || !selectedFurnace}
           >
             Refresh File
@@ -295,10 +282,10 @@ const XmlMaster = () => {
           {isAdmin && (
             <button
               onClick={handleToggleMqtt}
-              className={`cursor-pointer px-5 py-2 rounded-xl font-semibold transition ${
+              className={`px-5 py-2 rounded-xl font-semibold ${
                 mqttStatus === "enabled"
-                  ? "bg-red-600 text-white hover:bg-red-700"
-                  : "bg-green-600 text-white hover:bg-green-700"
+                  ? "bg-red-600 text-white"
+                  : "bg-green-600 text-white"
               }`}
             >
               {mqttStatus === "enabled" ? "Disable MQTT" : "Enable MQTT"}
@@ -319,7 +306,7 @@ const XmlMaster = () => {
                   dispatch(unlockFurnaceThunk(gatewayMac));
                 }
               }}
-              className="cursor-pointer px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+              className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold"
             >
               Unlock
             </button>
@@ -331,26 +318,21 @@ const XmlMaster = () => {
       {error && <p className="text-red-600 font-medium">Error: {error}</p>}
 
       {comparisonData && (
-        <div className="bg-white border border-gray-700 rounded-xl p-6 space-y-3 text-stone-700 shadow-sm">
+        <div className="border border-gray-300 rounded-xl p-6 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <p>
-              <span className="font-semibold">Sample Name:</span>{" "}
-              {comparisonData.sampleName}
+              <strong>Sample Name:</strong> {comparisonData.sampleName}
             </p>
             <p>
-              <span className="font-semibold">Date:</span> {formattedDate}
+              <strong>Date:</strong> {formattedDate}
             </p>
             <p>
-              <span className="font-semibold">Time:</span> {formattedTime}
+              <strong>Time:</strong> {formattedTime}
             </p>
             <p className="col-span-1 sm:col-span-2">
-              <span className="font-semibold">Overall Status:</span>{" "}
-              <span
-                className={`font-bold ${
-                  !lockStatus ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {!lockStatus ? "OK" : "Not OK"}
+              <strong>Overall Status:</strong>{" "}
+              <span className={lockStatus ? "text-red-600" : "text-green-600"}>
+                {lockStatus ? "Not OK" : "OK"}
               </span>
             </p>
           </div>

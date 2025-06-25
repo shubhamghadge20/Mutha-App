@@ -129,16 +129,25 @@ const XmlHistoryMaster = () => {
     doc.setFontSize(16);
     doc.text("MachinWise Comparison History Report", 14, 20);
 
-    const columns = ["#", "Sample ID", "Product", "Date", "Time", "Status"];
+    const columns = [
+      "#",
+      "Sample ID",
+      "Furnace ID",
+      "Product",
+      "Date",
+      "Time",
+      "Status",
+    ];
 
     const rows = filteredData.map((record, index) => {
       const isUnlocked = record.comparisonResults.every((r) => r.inTolerance);
       return [
-        index + 1 + (page - 1) * limit,
-        record.sampleName,
-        record.selectedProduct || "N/A",
-        formatToDisplayDate(record.date),
-        formatToDisplayTime(record.date),
+        String(index + 1 + (page - 1) * limit),
+        String(record.sampleName),
+        String(record.selectedFurnace || "N/A"),
+        String(record.selectedProduct || "N/A"),
+        String(formatToDisplayDate(record.date)),
+        String(formatToDisplayTime(record.date)),
         isUnlocked ? "Unlocked" : "Locked",
       ];
     });
@@ -150,7 +159,7 @@ const XmlHistoryMaster = () => {
       styles: { fontSize: 10 },
     });
 
-    const fileName = `MchineWise_Interlocking_History_${safeStartDate.format(
+    const fileName = `MachineWise_Interlocking_History_${safeStartDate.format(
       "DD-MM-YYYY"
     )}_to_${safeEndDate.format("DD-MM-YYYY")}.pdf`;
     doc.save(fileName);
@@ -238,6 +247,7 @@ const XmlHistoryMaster = () => {
                 <tr>
                   <th className="p-3 border-b">#</th>
                   <th className="p-3 border-b">Sample ID</th>
+                  <th className="p-3 border-b">Furnace ID</th>
                   <th className="p-3 border-b">Product</th>
                   <th className="p-3 border-b">Date</th>
                   <th className="p-3 border-b">Time</th>
@@ -256,6 +266,7 @@ const XmlHistoryMaster = () => {
                     >
                       <td className="p-3">{index + 1 + (page - 1) * limit}</td>
                       <td className="p-3">{record.sampleName}</td>
+                      <td className="p-3">{record.selectedFurnace || "N/A"}</td>
                       <td className="p-3">{record.selectedProduct || "N/A"}</td>
                       <td className="p-3">
                         {formatToDisplayDate(record.date)}

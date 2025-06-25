@@ -1,63 +1,66 @@
-// hooks/socket/useGlobalLockListener.ts
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import socket from "@/services/socket";
-import { useAppDispatch } from "@/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
+import { RootState } from "@/store";
 import { lockFurnaceThunk, unlockFurnaceThunk } from "@/features/mqtt";
+import { FurnaceGateway } from "@/types";
+import { getFurnaceGateways } from "@/features/FurnaceGateway/furnaceGatewayAPI";
 
-export const useGlobalLockListener = (gatewayMac: string) => {
+export const useGlobalXmlComparisonListener = () => {
   const dispatch = useAppDispatch();
 
+  const mqttStatus = useAppSelector(
+    (state: RootState) => state.mqtt.mqttStatus
+  );
+
+  const furnaceListRef = useRef<FurnaceGateway[]>([]);
+
   useEffect(() => {
-    if (!gatewayMac) return;
+    getFurnaceGateways().then((res) => {
+      if (Array.isArray(res.results)) {
+        furnaceListRef.current = res.results;
+      }
+    });
+  }, []);
 
-    const furnaceId = localStorage.getItem("selectedFurnace");
-    if (!furnaceId) {
-      console.warn("Furnace ID is required but not found in localStorage.");
-      return;
-    }
+  useEffect(() => {
+    const onUpdate = (data: any) => {
+      const selectedFurnace = data.selectedFurnace;
+      const gatewayMac = furnaceListRef.current.find(
+        (f) => f.furnaceId === selectedFurnace
+      )?.gatewayMac;
 
-    if (!socket.connected) socket.connect();
+      if (!gatewayMac) return;
 
-    const handleConnect = () => {
-      socket.emit("selectFurnace", furnaceId);
-    };
+      const backendLock =
+        data.lockStatus === true || data.lockStatus === "Locked";
+      const previousLock = localStorage.getItem("lockStatus") === "true";
 
-    const handleUpdate = (data: any) => {
-      const mqttStatus =
-        (localStorage.getItem("mqttStatus") as "enabled" | "disabled") ||
-        "enabled";
+      localStorage.setItem("lockStatus", String(backendLock));
 
-      const isLocked = data?.comparisonResults?.some(
-        (item: any) => !item.inTolerance
-      );
-
-      const previousStatus = localStorage.getItem("lockStatus") === "true";
-      localStorage.setItem("lockStatus", String(isLocked));
-
-      if (mqttStatus === "enabled" && isLocked !== previousStatus) {
-        if (isLocked) {
-          dispatch(lockFurnaceThunk(gatewayMac));
-        } else {
-          dispatch(unlockFurnaceThunk(gatewayMac));
+      if (mqttStatus === "enabled") {
+        if (backendLock !== previousLock) {
+          if (backendLock) {
+            dispatch(lockFurnaceThunk(gatewayMac));
+          } else {
+            dispatch(unlockFurnaceThunk(gatewayMac));
+          }
         }
+      } else {
+        dispatch(unlockFurnaceThunk(gatewayMac));
       }
     };
 
-    const handleError = (err: any) => {
-      console.error(
-        "Global comparison error:",
-        err?.message || "Unknown error"
-      );
+    const onError = (err: any) => {
+      console.error(" Global comparison error:", err?.message || err);
     };
 
-    socket.on("connect", handleConnect);
-    socket.on("comparisonUpdate", handleUpdate);
-    socket.on("comparisonError", handleError);
+    socket.on("comparisonUpdate", onUpdate);
+    socket.on("comparisonError", onError);
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("comparisonUpdate", handleUpdate);
-      socket.off("comparisonError", handleError);
+      socket.off("comparisonUpdate", onUpdate);
+      socket.off("comparisonError", onError);
     };
-  }, [dispatch, gatewayMac]);
+  }, [mqttStatus, dispatch]);
 };

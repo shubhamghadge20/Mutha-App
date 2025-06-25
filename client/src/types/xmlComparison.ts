@@ -16,6 +16,7 @@ export interface XmlComparisonResponse {
 export interface XmlComparisonHistoryItem {
   _id: string;
   latestFile: string;
+  selectedFurnace: String;
   selectedProduct: string;
   sampleName: string;
   date: string;
