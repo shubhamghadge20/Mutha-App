@@ -19,11 +19,12 @@ const lockFurnace = catchAsync(async (req, res) => {
     const message = await mqttService.getMessage(gatewayMac);
     const relayStatus = message?.data?.io?.op1;
 
+    await mqttService.lock(gatewayMac);
+    io.emit('furnaceStatus', { gatewayMac, status: 'locked' });
+
     if (relayStatus === 1) {
-      res.json({ message: 'Already locked' });
+      res.json({ message: 'Already locked, but LOCK command sent again' });
     } else {
-      await mqttService.lock(gatewayMac);
-      io.emit('furnaceStatus', { gatewayMac, status: 'locked' });
       res.json({ message: 'Lock command sent' });
     }
   } catch (err) {
@@ -43,11 +44,12 @@ const unlockFurnace = catchAsync(async (req, res) => {
     const message = await mqttService.getMessage(gatewayMac);
     const relayStatus = message?.data?.io?.op1;
 
+    await mqttService.unlock(gatewayMac);
+    io.emit('furnaceStatus', { gatewayMac, status: 'unlocked' });
+
     if (relayStatus === 0) {
-      res.json({ message: 'Already unlocked' });
+      res.json({ message: 'Already unlocked, but UNLOCK command sent again' });
     } else {
-      await mqttService.unlock(gatewayMac);
-      io.emit('furnaceStatus', { gatewayMac, status: 'unlocked' });
       res.json({ message: 'Unlock command sent' });
     }
   } catch (err) {

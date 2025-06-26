@@ -25,13 +25,8 @@ function App() {
   const authChecked = useAppSelector((state) => state.auth.authChecked);
   const { checkTokenExpiration, tryRefreshToken } = useAuth();
 
-  // ✅ Connect the socket only once when App mounts
-
-  // 🔊 Passive listener (does not connect socket)
-
   useGlobalXmlComparisonListener();
 
-  // 🔐 Auth load
   useEffect(() => {
     dispatch(setAuthFromStorage());
     if (!checkTokenExpiration()) tryRefreshToken();
