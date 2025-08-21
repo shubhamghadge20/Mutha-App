@@ -62,7 +62,7 @@ const handleXmlComparison = async (selectedProductName, selectedFurnaceId) => {
   if (!folderPath) throw new Error('XML_FOLDER_PATH is not set');
   const folder = path.resolve(folderPath);
 
-  const latestFile = getLatestXmlFile(folder);
+  const latestFile = await getLatestXmlFile(folder);
   if (!latestFile) {
     return {
       latestFile: null,

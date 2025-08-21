@@ -140,7 +140,7 @@ const XmlHistoryMaster = () => {
     ];
 
     const rows = filteredData.map((record, index) => {
-      const isUnlocked = record.comparisonResults.every((r) => r.inTolerance);
+      const lockStatus = record.lockStatus || "Locked";
       return [
         String(index + 1 + (page - 1) * limit),
         String(record.sampleName),
@@ -148,7 +148,7 @@ const XmlHistoryMaster = () => {
         String(record.selectedProduct || "N/A"),
         String(formatToDisplayDate(record.date)),
         String(formatToDisplayTime(record.date)),
-        isUnlocked ? "Unlocked" : "Locked",
+        lockStatus,
       ];
     });
 

@@ -15,6 +15,15 @@ export const useGlobalXmlComparisonListener = () => {
 
   const furnaceListRef = useRef<FurnaceGateway[]>([]);
 
+  // 🔧 Utility function to get gatewayMac
+  const getGatewayMac = (furnaceId: string): string | undefined => {
+    const gateway = furnaceListRef.current.find(
+      (f: FurnaceGateway) => f.furnaceId === furnaceId
+    );
+    return gateway?.gatewayMac;
+  };
+
+  // 🔁 Load furnace list once
   useEffect(() => {
     getFurnaceGateways().then((res) => {
       if (Array.isArray(res.results)) {
@@ -26,23 +35,30 @@ export const useGlobalXmlComparisonListener = () => {
   useEffect(() => {
     const onUpdate = (data: any) => {
       const selectedFurnace = data.selectedFurnace;
-      const gatewayMac = furnaceListRef.current.find(
-        (f) => f.furnaceId === selectedFurnace
-      )?.gatewayMac;
+      const gatewayMac = getGatewayMac(selectedFurnace);
 
-      if (!gatewayMac) return;
+      if (!gatewayMac) {
+        console.warn("Gateway MAC not found for furnace:", selectedFurnace);
+        return;
+      }
 
       const backendLock =
         data.lockStatus === true || data.lockStatus === "Locked";
       const previousLock = localStorage.getItem("lockStatus") === "true";
 
+      console.log(
+        `[GLOBAL XML] Lock status for ${selectedFurnace}:`,
+        backendLock
+      );
       localStorage.setItem("lockStatus", String(backendLock));
 
       if (mqttStatus === "enabled") {
         if (backendLock !== previousLock) {
           if (backendLock) {
+            console.log(`[MQTT] Locking furnace ${selectedFurnace}`);
             dispatch(lockFurnaceThunk(gatewayMac));
           } else {
+            console.log(`[MQTT] Unlocking furnace ${selectedFurnace}`);
             dispatch(unlockFurnaceThunk(gatewayMac));
           }
         }
@@ -52,7 +68,7 @@ export const useGlobalXmlComparisonListener = () => {
     };
 
     const onError = (err: any) => {
-      console.error(" Global comparison error:", err?.message || err);
+      console.error("Global XML Comparison Error:", err?.message || err);
     };
 
     socket.on("comparisonUpdate", onUpdate);
